@@ -1,0 +1,16 @@
+export const curriculum = [
+  { id: 'kcse', name: 'KCSE / Kenya', description: 'Secondary-school revision and exam practice. Generated practice is clearly labelled and is not represented as official KNEC material.' },
+  { id: 'general', name: 'General learning', description: 'Use the tutor for other subjects and learning levels.' }
+];
+export const subjects = ['Mathematics','English','Kiswahili','Biology','Chemistry','Computer Studies','History','CRE'];
+export const sampleQuiz = [
+  { id:'math-1', subject:'Mathematics', topic:'Algebra', question:'Factorise: x² + 5x + 6', options:['(x + 2)(x + 3)','(x + 1)(x + 6)','(x - 2)(x - 3)','(x + 5)(x + 1)'], answer:'(x + 2)(x + 3)', explanation:'Find two numbers whose product is 6 and sum is 5: 2 and 3. Therefore x² + 5x + 6 = (x + 2)(x + 3).' },
+  { id:'math-2', subject:'Mathematics', topic:'Indices', question:'Simplify: 2³ × 2²', options:['2⁵ = 32','2⁶ = 64','4⁵ = 1024','2¹ = 2'], answer:'2⁵ = 32', explanation:'When multiplying powers with the same base, add the indices: 2³ × 2² = 2^(3+2) = 2⁵ = 32.' },
+  { id:'chem-1', subject:'Chemistry', topic:'Acids and bases', question:'Which gas is commonly produced when a reactive metal reacts with a dilute acid?', options:['Oxygen','Hydrogen','Nitrogen','Carbon dioxide'], answer:'Hydrogen', explanation:'A reactive metal displaces hydrogen from a dilute acid, producing a salt and hydrogen gas.' },
+  { id:'bio-1', subject:'Biology', topic:'Cell biology', question:'Which cell structure is the main site of aerobic respiration?', options:['Ribosome','Nucleus','Mitochondrion','Cell wall'], answer:'Mitochondrion', explanation:'Mitochondria are the main site of aerobic respiration and ATP production in eukaryotic cells.' },
+  { id:'comp-1', subject:'Computer Studies', topic:'Computer systems', question:'Which component is commonly called the computer’s main processor?', options:['RAM','CPU','Monitor','Keyboard'], answer:'CPU', explanation:'The central processing unit (CPU) executes instructions and processes data.' },
+  { id:'eng-1', subject:'English', topic:'Grammar', question:'Choose the correct sentence.', options:['She have finished her work.','She has finished her work.','She are finished her work.','She finishing her work.'], answer:'She has finished her work.', explanation:'“She” is third-person singular, so the present perfect uses “has” plus the past participle “finished”.' },
+  { id:'sw-1', subject:'Kiswahili', topic:'Sarufi', question:'Wingi wa “mtoto” ni upi?', options:['Watoto','Mitoto','Vitoto','Matoto'], answer:'Watoto', explanation:'Nomino “mtoto” iko katika ngeli ya M-WA; wingi wake ni “watoto”.' },
+  { id:'hist-1', subject:'History', topic:'Historical sources', question:'Which is an example of an oral source of history?', options:['A recorded interview with an elder','A printed map only','A stone tool only','A modern calculator'], answer:'A recorded interview with an elder', explanation:'Oral sources include spoken accounts, interviews, narratives, and traditions passed between people.' },
+  { id:'cre-1', subject:'CRE', topic:'Bible knowledge', question:'In the Bible, which book begins with the creation account?', options:['Exodus','Genesis','Psalms','Acts'], answer:'Genesis', explanation:'Genesis is the first book of the Bible and contains the creation account.' }
+];

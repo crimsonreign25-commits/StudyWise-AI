@@ -1,9 +1,18 @@
 {
   "name": "studywise-ai",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "private": true,
-  "description": "Mobile-first AI learning and KCSE revision app",
+  "description": "StudyWise AI 2.0: personalised learning, AI tutoring, account security and role-based administration",
   "type": "module",
-  "scripts": {"start": "node server.js", "dev": "node --watch server.js", "test": "node --test"},
-  "engines": {"node": ">=20"}
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "pg": "^8.16.3"
+  }
 }

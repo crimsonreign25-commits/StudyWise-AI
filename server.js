@@ -43,23 +43,49 @@ function contentType(file) {
   const ext = path.extname(file).toLowerCase();
   return ({'.html':'text/html; charset=utf-8','.css':'text/css; charset=utf-8','.js':'text/javascript; charset=utf-8','.json':'application/json; charset=utf-8','.svg':'image/svg+xml'})[ext] || 'application/octet-stream';
 }
-async function tutorAnswer(question, subject, level) {
-  const key = process.env.OPENAI_API_KEY;
-  if (!key) return { mode: 'demo', answer: demoExplain(question, subject), note: 'Built-in demo tutor: add an OPENAI_API_KEY in Render environment variables to enable live AI answers.' };
-  const base = (process.env.OPENAI_BASE_URL || 'https://api.openai.com/v1').replace(/\/$/, '');
-  const model = process.env.AI_MODEL || 'gpt-4o-mini';
-  const response = await fetch(`${base}/chat/completions`, {
-    method: 'POST', headers: { 'content-type': 'application/json', authorization: `Bearer ${key}` },
-    body: JSON.stringify({ model, temperature: 0.3, messages: [
-      { role: 'system', content: `You are StudyWise, a patient tutor. The learner's level is ${level}; subject is ${subject}. Explain in clear student-friendly language. For KCSE-style work, show steps and use mark-worthy points when relevant. Never claim generated questions are official KNEC papers. If uncertain, say so. Encourage learning rather than simply giving unsupported answers.` },
-      { role: 'user', content: question }
-    ] })
+function configuredProviders() {
+  const list = [];
+  const geminiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY || process.env.GOOGLE_AI_API_KEY;
+  const grokKey = process.env.XAI_API_KEY || process.env.GROK_API_KEY;
+  const openaiKey = process.env.OPENAI_API_KEY;
+  if (geminiKey) list.push({ id: 'gemini', key: geminiKey, model: process.env.GEMINI_MODEL || 'gemini-2.5-flash' });
+  if (grokKey) list.push({ id: 'grok', key: grokKey, model: process.env.GROK_MODEL || 'grok-3-mini', base: 'https://api.x.ai/v1' });
+  if (openaiKey) list.push({ id: 'openai', key: openaiKey, model: process.env.OPENAI_MODEL || process.env.AI_MODEL || 'gpt-4o-mini', base: (process.env.OPENAI_BASE_URL || 'https://api.openai.com/v1').replace(/\/$/, '') });
+  const preference = (process.env.AI_PROVIDER_ORDER || 'gemini,grok,openai').split(',').map(x => x.trim().toLowerCase());
+  return list.sort((a,b) => preference.indexOf(a.id) - preference.indexOf(b.id));
+}
+async function callProvider(provider, systemPrompt, question) {
+  if (provider.id === 'gemini') {
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(provider.model)}:generateContent?key=${encodeURIComponent(provider.key)}`, {
+      method: 'POST', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ systemInstruction: { parts: [{ text: systemPrompt }] }, contents: [{ role: 'user', parts: [{ text: question }] }], generationConfig: { temperature: 0.3 } })
+    });
+    if (!response.ok) throw new Error(`Gemini returned HTTP ${response.status}`);
+    const data = await response.json();
+    const answer = data?.candidates?.[0]?.content?.parts?.map(p => p.text || '').join('\n').trim();
+    if (!answer) throw new Error('Gemini returned an empty answer');
+    return answer;
+  }
+  const response = await fetch(`${provider.base}/chat/completions`, {
+    method: 'POST', headers: { 'content-type': 'application/json', authorization: `Bearer ${provider.key}` },
+    body: JSON.stringify({ model: provider.model, temperature: 0.3, messages: [{ role: 'system', content: systemPrompt }, { role: 'user', content: question }] })
   });
-  if (!response.ok) throw new Error(`AI provider returned ${response.status}. Check your model and API configuration.`);
+  if (!response.ok) throw new Error(`${provider.id} returned HTTP ${response.status}`);
   const data = await response.json();
   const answer = data?.choices?.[0]?.message?.content;
-  if (!answer) throw new Error('AI provider returned an empty answer.');
-  return { mode: 'live', answer };
+  if (typeof answer !== 'string' || !answer.trim()) throw new Error(`${provider.id} returned an empty answer`);
+  return answer.trim();
+}
+async function tutorAnswer(question, subject, level, learnerContext = {}) {
+  const systemPrompt = `You are StudyWise AI, a patient and encouraging tutor. Learner education level: ${level}; subject: ${subject}; curriculum: ${learnerContext.curriculum || 'not specified'}; topic: ${learnerContext.topic || 'not specified'}. Explain in age-appropriate, clear student-friendly language. Ask short guiding questions when useful, give worked examples and check understanding. For exam answers, match detail to marks when supplied. Never claim AI-generated questions are official exam papers. If curriculum details are uncertain, say so and ask for the official syllabus. End with one short check-for-understanding question when suitable.`;
+  const providers = configuredProviders();
+  if (!providers.length) return { mode: 'demo', provider: 'demo', answer: demoExplain(question, subject), note: 'No supported AI API key is configured. This is demo guidance, not a live AI response.' };
+  const failures = [];
+  for (const provider of providers) {
+    try { return { mode: 'live', provider: provider.id, answer: await callProvider(provider, systemPrompt, question) }; }
+    catch (error) { failures.push(`${provider.id}: ${error.message}`); }
+  }
+  throw new Error(`All configured AI providers failed. ${failures.join('; ')}. Check key validity, model access, quota and provider status.`);
 }
 function demoExplain(question, subject) {
   const q = question.toLowerCase();
@@ -74,12 +100,15 @@ const server = http.createServer(async (req, res) => {
     if (origin && req.headers.origin && !origin.split(',').map(x => x.trim()).includes(req.headers.origin)) return json(res, 403, { error: 'Origin not allowed' });
     if (req.method === 'OPTIONS') { res.writeHead(204, { 'access-control-allow-methods':'GET,POST,PUT,DELETE,OPTIONS', 'access-control-allow-headers':'content-type' }); return res.end(); }
     if (url.pathname.startsWith('/api/')) {
-      if (req.method === 'GET' && url.pathname === '/api/health') return json(res, 200, { ok: true, app: 'StudyWise AI', version: '1.0.0', aiConfigured: Boolean(process.env.OPENAI_API_KEY), time: new Date().toISOString() });
-      if (req.method === 'GET' && url.pathname === '/api/curriculum') return json(res, 200, { curriculum, subjects });
+      if (req.method === 'GET' && url.pathname === '/api/health') return json(res, 200, { ok: true, app: 'StudyWise AI', version: '2.0.0', aiConfigured: configuredProviders().length > 0, providers: configuredProviders().map(p => p.id), time: new Date().toISOString() });
+      if (req.method === 'GET' && url.pathname === '/api/curriculum') return json(res, 200, { curriculum, subjects, educationLevels: ['Early years','Primary','Lower secondary','Upper secondary','TVET / vocational','College','Undergraduate','Postgraduate','Professional learning','Lifelong learning'], curriculumNote: 'This is an expandable starter directory, not a claim that every national syllabus has been verified.' });
       if (req.method === 'GET' && url.pathname === '/api/quiz') {
         const subject = url.searchParams.get('subject') || 'Mathematics';
         const items = sampleQuiz.filter(q => q.subject === subject);
-        return json(res, 200, { questions: items.map(({answer, explanation, ...q}) => q), count: items.length, note: 'Original practice questions; not official KNEC examination papers.' });
+        const topic = url.searchParams.get('topic');
+        const paper = url.searchParams.get('paper');
+        const filtered = items.filter(q => (!topic || q.topic.toLowerCase() === topic.toLowerCase()) && (!paper || q.paper === paper));
+        return json(res, 200, { questions: filtered.map(({answer, explanation, ...q}) => q), count: filtered.length, topics: [...new Set(items.map(q => q.topic))], papers: [...new Set(items.map(q => q.paper).filter(Boolean))], note: 'Original practice questions; not official KNEC examination papers.' });
       }
       if (req.method === 'GET' && url.pathname === '/api/progress') {
         const learner = getLearner(url.searchParams.get('learnerId'));
@@ -88,7 +117,7 @@ const server = http.createServer(async (req, res) => {
       if (req.method === 'POST' && url.pathname === '/api/tutor') {
         const b = await bodyJson(req); const question = cleanText(b.question, 4000); const subject = cleanText(b.subject, 80) || 'General';
         if (question.length < 3) return json(res, 400, { error: 'Please enter a question of at least 3 characters.' });
-        try { return json(res, 200, await tutorAnswer(question, subject, cleanText(b.level, 80) || 'Secondary')); }
+        try { return json(res, 200, await tutorAnswer(question, subject, cleanText(b.level, 80) || 'Secondary', { curriculum: cleanText(b.curriculum, 120), topic: cleanText(b.topic, 160) })); }
         catch (e) { return json(res, 502, { error: e.message || 'Tutor service unavailable.' }); }
       }
       if (req.method === 'POST' && url.pathname === '/api/attempt') {

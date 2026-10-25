@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#101827"><meta name="description" content="StudyWise AI — your personal study companion for KCSE revision, quizzes, notes and progress.">
+  <title>StudyWise AI — Learn with confidence</title><link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar" id="sidebar">
+    <a class="brand" href="#home"><span class="brand-mark">S</span><span><b>StudyWise</b><small>AI LEARNING COMPANION</small></span></a>
+    <div class="side-label">LEARNING SPACE</div>
+    <button class="nav active" data-view="home"><span>⌂</span> Overview</button>
+    <button class="nav" data-view="tutor"><span>✦</span> AI Tutor <i class="new-tag">AI</i></button>
+    <button class="nav" data-view="practice"><span>▤</span> Practice quiz</button>
+    <button class="nav" data-view="errorbook"><span>↗</span> Error book <i id="error-count" class="count">0</i></button>
+    <button class="nav" data-view="notes"><span>▧</span> My notes</button>
+    <button class="nav" data-view="planner"><span>◷</span> Study planner</button>
+    <div class="side-bottom"><div class="mini-card"><div class="mini-icon">✦</div><b>Small steps add up.</b><p>Build a study habit, one focused session at a time.</p></div><button class="nav" data-view="settings"><span>⚙</span> Learner profile</button><div class="privacy-note">Your study data is stored by this app. This starter version has no account login; don't enter sensitive personal information.</div></div>
+  </aside>
+  <main class="main-area">
+    <header class="topbar"><button class="menu-btn" id="menu-btn" aria-label="Open menu">☰</button><div class="crumb">LEARNING SPACE <span>/</span> <b id="crumb-title">Overview</b></div><div class="top-actions"><span class="date-pill" id="today-label">Your learning journey</span><div class="avatar" id="avatar">L</div></div></header>
+    <div class="content" id="content"><div class="loading">Preparing your learning space…</div></div>
+    <footer class="footer">StudyWise AI <span>•</span> Learn honestly. Practise consistently. <span class="demo-indicator" id="ai-status">Checking tutor…</span></footer>
+  </main>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script src="/app.js" defer></script>
+</body></html>

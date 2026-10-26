@@ -5,6 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { randomUUID, randomBytes, scrypt as scryptCb, timingSafeEqual } from 'node:crypto';
 import { promisify } from 'node:util';
 import { curriculum, subjects, sampleQuiz } from './src-content.js';
+import { geminiModelCandidates } from './ai-models.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PUBLIC_DIR = path.join(__dirname, 'public');
@@ -76,15 +77,32 @@ function configuredProviders() {
 }
 async function callProvider(provider, systemPrompt, question) {
   if (provider.id === 'gemini') {
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(provider.model)}:generateContent?key=${encodeURIComponent(provider.key)}`, {
-      method: 'POST', headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ systemInstruction: { parts: [{ text: systemPrompt }] }, contents: [{ role: 'user', parts: [{ text: question }] }], generationConfig: { temperature: 0.3 } })
-    });
-    if (!response.ok) throw new Error(`Gemini returned HTTP ${response.status}`);
-    const data = await response.json();
-    const answer = data?.candidates?.[0]?.content?.parts?.map(p => p.text || '').join('\n').trim();
-    if (!answer) throw new Error('Gemini returned an empty answer');
-    return answer;
+    // Model availability varies by API key/project. If the configured model is
+    // missing (404), retry a small, current fallback list before failing over
+    // to another provider. Never retry auth/quota errors as model errors.
+    const models = geminiModelCandidates(provider.model);
+    const base = (process.env.GEMINI_API_BASE_URL || 'https://generativelanguage.googleapis.com/v1beta').replace(/\/$/, '');
+    let lastError;
+    for (const model of models) {
+      const response = await fetch(`${base}/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(provider.key)}`, {
+        method: 'POST', headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ systemInstruction: { parts: [{ text: systemPrompt }] }, contents: [{ role: 'user', parts: [{ text: question }] }], generationConfig: { temperature: 0.3 } })
+      });
+      if (response.status === 404) {
+        lastError = new Error(`Gemini model ${model} returned HTTP 404 (model unavailable at ${base})`);
+        continue;
+      }
+      if (!response.ok) {
+        let detail = '';
+        try { const body = await response.json(); detail = body?.error?.message ? `: ${body.error.message}` : ''; } catch {}
+        throw new Error(`Gemini returned HTTP ${response.status}${detail}`);
+      }
+      const data = await response.json();
+      const answer = data?.candidates?.[0]?.content?.parts?.map(p => p.text || '').join('\n').trim();
+      if (!answer) throw new Error(`Gemini model ${model} returned an empty answer`);
+      return answer;
+    }
+    throw lastError || new Error('No available Gemini model succeeded');
   }
   const response = await fetch(`${provider.base}/chat/completions`, {
     method: 'POST', headers: { 'content-type': 'application/json', authorization: `Bearer ${provider.key}` },
@@ -120,7 +138,7 @@ const server = http.createServer(async (req, res) => {
     if (origin && req.headers.origin && !origin.split(',').map(x => x.trim()).includes(req.headers.origin)) return json(res, 403, { error: 'Origin not allowed' });
     if (req.method === 'OPTIONS') { res.writeHead(204, { 'access-control-allow-methods':'GET,POST,PUT,DELETE,OPTIONS', 'access-control-allow-headers':'content-type' }); return res.end(); }
     if (url.pathname.startsWith('/api/')) {
-      if (req.method === 'GET' && url.pathname === '/api/health') return json(res, 200, { ok: true, app: 'StudyWise AI', version: '2.0.0', aiConfigured: configuredProviders().length > 0, providers: configuredProviders().map(p => p.id), time: new Date().toISOString() });
+      if (req.method === 'GET' && url.pathname === '/api/health') return json(res, 200, { ok: true, app: 'StudyWise AI', version: '2.1.2', aiConfigured: configuredProviders().length > 0, providers: configuredProviders().map(p => p.id), time: new Date().toISOString() });
       if (req.method === 'GET' && url.pathname === '/api/accounts/status') return json(res, 200, { setupRequired: accounts.users.length === 0, roles: ROLES.filter(r => r !== 'creator').map(id => ({ id, label: ROLE_LABELS[id] })), sessionActive: Boolean(currentUser(req)) });
       if (req.method === 'POST' && url.pathname === '/api/accounts/setup-creator') {
         const b = await bodyJson(req); const setupSecret = process.env.CREATOR_SETUP_SECRET || '';

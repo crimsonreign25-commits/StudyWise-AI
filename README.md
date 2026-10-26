@@ -142,3 +142,8 @@ The test suite includes checks for the separate navigation item, role-aware sett
 - Gemini API error messages are included where the provider returns a useful message, making Render logs and Tutor errors more actionable.
 - `GEMINI_API_BASE_URL` is configurable for diagnostics or provider-compatible deployments. Leave it at the official default unless you have a specific reason to change it.
 - This code-level fix cannot guarantee live answers without a valid server-side API key, model access, quota, and provider availability. If all providers fail, verify the key/model and configure a fallback provider. Never place API keys in frontend code or commit them to GitHub.
+
+
+## Groq fallback (2.1.4)
+
+The server can use `GROQ_API_KEY` with Groq's OpenAI-compatible API. Default provider order is Gemini, Groq, Grok (xAI), then OpenAI. If a provider request fails, the Tutor continues to the next configured provider. Optional `GROQ_MODEL` defaults to `llama-3.3-70b-versatile`; confirm current model availability and quota in your Groq console. Set `AI_PROVIDER_ORDER` to override the order. Never commit API keys.

@@ -67,13 +67,16 @@ function contentType(file) {
 function configuredProviders() {
   const list = [];
   const geminiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY || process.env.GOOGLE_AI_API_KEY;
+  const groqKey = process.env.GROQ_API_KEY;
   const grokKey = process.env.XAI_API_KEY || process.env.GROK_API_KEY;
   const openaiKey = process.env.OPENAI_API_KEY;
   if (geminiKey) list.push({ id: 'gemini', key: geminiKey, model: process.env.GEMINI_MODEL || 'gemini-3.8-flash' });
+  // Groq provides an OpenAI-compatible chat-completions endpoint.
+  if (groqKey) list.push({ id: 'groq', key: groqKey, model: process.env.GROQ_MODEL || 'llama-3.3-70b-versatile', base: 'https://api.groq.com/openai/v1' });
   if (grokKey) list.push({ id: 'grok', key: grokKey, model: process.env.GROK_MODEL || 'grok-3-mini', base: 'https://api.x.ai/v1' });
   if (openaiKey) list.push({ id: 'openai', key: openaiKey, model: process.env.OPENAI_MODEL || process.env.AI_MODEL || 'gpt-4o-mini', base: (process.env.OPENAI_BASE_URL || 'https://api.openai.com/v1').replace(/\/$/, '') });
-  const preference = (process.env.AI_PROVIDER_ORDER || 'gemini,grok,openai').split(',').map(x => x.trim().toLowerCase());
-  return list.sort((a,b) => preference.indexOf(a.id) - preference.indexOf(b.id));
+  const preference = (process.env.AI_PROVIDER_ORDER || 'gemini,groq,grok,openai').split(',').map(x => x.trim().toLowerCase());
+  return list.sort((a,b) => { const ai = preference.indexOf(a.id), bi = preference.indexOf(b.id); return (ai < 0 ? 999 : ai) - (bi < 0 ? 999 : bi); });
 }
 async function callProvider(provider, systemPrompt, question) {
   if (provider.id === 'gemini') {
@@ -139,7 +142,7 @@ const server = http.createServer(async (req, res) => {
     if (origin && req.headers.origin && !origin.split(',').map(x => x.trim()).includes(req.headers.origin)) return json(res, 403, { error: 'Origin not allowed' });
     if (req.method === 'OPTIONS') { res.writeHead(204, { 'access-control-allow-methods':'GET,POST,PUT,DELETE,OPTIONS', 'access-control-allow-headers':'content-type' }); return res.end(); }
     if (url.pathname.startsWith('/api/')) {
-      if (req.method === 'GET' && url.pathname === '/api/health') return json(res, 200, { ok: true, app: 'StudyWise AI', version: '2.1.2', aiConfigured: configuredProviders().length > 0, providers: configuredProviders().map(p => p.id), time: new Date().toISOString() });
+      if (req.method === 'GET' && url.pathname === '/api/health') return json(res, 200, { ok: true, app: 'StudyWise AI', version: '2.1.4', aiConfigured: configuredProviders().length > 0, providers: configuredProviders().map(p => p.id), time: new Date().toISOString() });
       if (req.method === 'GET' && url.pathname === '/api/accounts/status') return json(res, 200, { setupRequired: accounts.users.length === 0, roles: ROLES.filter(r => r !== 'creator').map(id => ({ id, label: ROLE_LABELS[id] })), sessionActive: Boolean(currentUser(req)) });
       if (req.method === 'POST' && url.pathname === '/api/accounts/setup-creator') {
         const b = await bodyJson(req); const setupSecret = process.env.CREATOR_SETUP_SECRET || '';

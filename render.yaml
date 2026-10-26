@@ -11,6 +11,10 @@ services:
         value: 22
       - key: CREATOR_SETUP_SECRET
         sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: GEMINI_MODEL
+        value: gemini-3.8-flash
       - key: OPENAI_API_KEY
         sync: false
       - key: OPENAI_BASE_URL

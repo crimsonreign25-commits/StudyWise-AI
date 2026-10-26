@@ -69,7 +69,7 @@ function configuredProviders() {
   const geminiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY || process.env.GOOGLE_AI_API_KEY;
   const grokKey = process.env.XAI_API_KEY || process.env.GROK_API_KEY;
   const openaiKey = process.env.OPENAI_API_KEY;
-  if (geminiKey) list.push({ id: 'gemini', key: geminiKey, model: process.env.GEMINI_MODEL || 'gemini-2.5-flash' });
+  if (geminiKey) list.push({ id: 'gemini', key: geminiKey, model: process.env.GEMINI_MODEL || 'gemini-3.8-flash' });
   if (grokKey) list.push({ id: 'grok', key: grokKey, model: process.env.GROK_MODEL || 'grok-3-mini', base: 'https://api.x.ai/v1' });
   if (openaiKey) list.push({ id: 'openai', key: openaiKey, model: process.env.OPENAI_MODEL || process.env.AI_MODEL || 'gpt-4o-mini', base: (process.env.OPENAI_BASE_URL || 'https://api.openai.com/v1').replace(/\/$/, '') });
   const preference = (process.env.AI_PROVIDER_ORDER || 'gemini,grok,openai').split(',').map(x => x.trim().toLowerCase());
@@ -77,9 +77,10 @@ function configuredProviders() {
 }
 async function callProvider(provider, systemPrompt, question) {
   if (provider.id === 'gemini') {
-    // Model availability varies by API key/project. If the configured model is
-    // missing (404), retry a small, current fallback list before failing over
-    // to another provider. Never retry auth/quota errors as model errors.
+    // Model availability varies by API key/project. If a model is missing (404),
+    // retry current supported model candidates before failing over to another
+    // configured provider. Gemini 2.0 Flash is retired and is not a fallback.
+    // Never retry auth/quota errors as model errors.
     const models = geminiModelCandidates(provider.model);
     const base = (process.env.GEMINI_API_BASE_URL || 'https://generativelanguage.googleapis.com/v1beta').replace(/\/$/, '');
     let lastError;

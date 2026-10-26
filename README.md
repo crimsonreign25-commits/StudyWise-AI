@@ -22,7 +22,7 @@ Open `http://localhost:10000`. The server uses Node's built-in modules, so there
 
 To enable live AI, configure one or more provider keys in your hosting environment. Gemini is tried first by default, then Grok, then OpenAI. The server checks configured providers and attempts the next provider if one fails. This does not make paid APIs free; provider billing, free-tier quotas, model availability and terms still apply. Never commit `.env` or put API keys in browser JavaScript.
 
-- Gemini: `GEMINI_API_KEY` (aliases `GOOGLE_API_KEY`, `GOOGLE_AI_API_KEY`); default model `gemini-2.5-flash`; optional `GEMINI_MODEL`. If that model returns HTTP 404, the server retries `gemini-2.5-flash` and `gemini-2.0-flash` before moving to the next configured provider. Optional `GEMINI_API_BASE_URL` overrides the API base. A 401/403 or quota error is reported rather than mislabelled as a missing model.
+- Gemini: `GEMINI_API_KEY` (aliases `GOOGLE_API_KEY`, `GOOGLE_AI_API_KEY`); default model `gemini-3.8-flash`; optional `GEMINI_MODEL`. If a model returns HTTP 404, the server tries `gemini-3.8-flash`, `gemini-3.5-flash-lite`, and `gemini-2.5-flash` (without repeating models) before moving to the next configured provider. Gemini 2.0 Flash is retired and is not used as a fallback. Optional `GEMINI_API_BASE_URL` overrides the API base. A 401/403 or quota error is reported rather than mislabelled as a missing model.
 - Grok: `XAI_API_KEY` (alias `GROK_API_KEY`); default model `grok-3-mini`; optional `GROK_MODEL`.
 - OpenAI: `OPENAI_API_KEY`; default model `gpt-4o-mini`; optional `OPENAI_MODEL` (or legacy `AI_MODEL`) and `OPENAI_BASE_URL`.
 - Optional provider order: `AI_PROVIDER_ORDER=gemini,grok,openai`.

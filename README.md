@@ -147,3 +147,14 @@ The test suite includes checks for the separate navigation item, role-aware sett
 ## Groq fallback (2.1.4)
 
 The server can use `GROQ_API_KEY` with Groq's OpenAI-compatible API. Default provider order is Gemini, Groq, Grok (xAI), then OpenAI. If a provider request fails, the Tutor continues to the next configured provider. Optional `GROQ_MODEL` defaults to `llama-3.3-70b-versatile`; confirm current model availability and quota in your Groq console. Set `AI_PROVIDER_ORDER` to override the order. Never commit API keys.
+
+
+## Version 2.1.5 Tutor reliability fix
+- Adds a 25-second timeout to AI provider requests so a stalled provider cannot keep the server request waiting indefinitely.
+- Shows tutor errors in the page and restores the submit button instead of leaving the page on “Working on your explanation…”.
+- Keeps provider API keys in Render environment variables; never add secrets to this ZIP or GitHub.
+
+
+## Version 2.1.6 — Tutor answer formatting
+
+The browser Tutor now formats common Markdown headings, bold/italic text, ordered and unordered lists, horizontal separators, Markdown tables, and simple display equations into accessible HTML. The renderer escapes user/provider text before adding formatting markup; CSS makes answer tables scroll on small screens and improves spacing on phones. This is a presentation-only update and does not change AI provider credentials or production configuration.

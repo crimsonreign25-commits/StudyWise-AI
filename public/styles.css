@@ -7,3 +7,22 @@ body[data-theme="dark"] .panel,body[data-theme="dark"] .stat-card,body[data-them
 
 /* Personal settings page */
 .settings-role{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:18px}.settings-role h3{margin:5px 0 0;font-size:17px}.settings-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.settings-check{display:flex;align-items:center;gap:10px;margin:10px 0 18px;font-size:12px;font-weight:650}.settings-check input{width:18px;height:18px;accent-color:#5368e8}.role-setting-list{display:grid;gap:10px;margin:12px 0 20px}.role-setting-item{display:flex;align-items:center;gap:12px;border:1px solid var(--line);border-radius:10px;padding:12px}.role-setting-item b,.role-setting-item small{display:block}.role-setting-item b{font-size:12px}.role-setting-item small{font-size:10px;color:var(--muted);line-height:1.5;margin-top:4px}html[data-text-size=large] body{font-size:1.08em}html[data-text-size=larger] body{font-size:1.16em}@media(max-width:520px){.settings-grid{grid-template-columns:1fr}.settings-role{align-items:flex-start;flex-direction:column}}
+/* Accessible, phone-friendly formatting for AI tutor Markdown answers */
+.answer-box{white-space:normal;overflow-wrap:anywhere;word-break:normal;max-width:100%;}
+.answer-box p{margin:0 0 1em;line-height:1.85;}
+.answer-box p:last-child{margin-bottom:0;}
+.answer-box h2,.answer-box h3,.answer-box h4,.answer-box h5{line-height:1.4;margin:1.25em 0 .55em;color:var(--ink);}
+.answer-box h2{font-size:1.2em}.answer-box h3{font-size:1.1em}.answer-box h4,.answer-box h5{font-size:1.03em}
+.answer-box strong{font-weight:800}.answer-box em{font-style:italic}
+.answer-box ul,.answer-box ol{padding-left:1.5em;margin:.45em 0 1em;line-height:1.8}
+.answer-box li{padding-left:.15em;margin:.2em 0}
+.answer-box hr{border:0;border-top:1px solid var(--line);margin:1.2em 0}
+.answer-box code{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;background:#edf1f8;border-radius:5px;padding:.12em .35em;font-size:.95em;overflow-wrap:anywhere}
+.answer-table-wrap{max-width:100%;overflow-x:auto;margin:.75em 0 1em;border:1px solid var(--line);border-radius:9px}
+.answer-table{border-collapse:collapse;width:100%;font-size:inherit;line-height:1.6;background:var(--card)}
+.answer-table th,.answer-table td{padding:9px 10px;text-align:left;vertical-align:top;border-bottom:1px solid var(--line);min-width:90px}
+.answer-table th{background:var(--blue2);font-weight:800}.answer-table tr:last-child td{border-bottom:0}
+.answer-equation{margin:1em 0;padding:13px 10px;text-align:center;background:var(--card);border:1px solid var(--line);border-radius:9px;font-family:ui-serif,Georgia,serif;font-size:1.05em;font-weight:650;line-height:1.9;overflow-wrap:anywhere}
+body[data-theme="dark"] .answer-box code{background:#252f4d;color:#e2e8f5}
+body[data-theme="dark"] .answer-table th{background:#252f4d}
+@media(max-width:480px){.answer-box{padding:13px;font-size:13px}.answer-table th,.answer-table td{padding:8px;font-size:12px;min-width:80px}.answer-equation{font-size:1em;padding:10px 7px}}

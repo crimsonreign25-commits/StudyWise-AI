@@ -1,8 +1,8 @@
 {
   "name": "studywise-ai",
-  "version": "2.1.4",
+  "version": "2.1.6",
   "private": true,
-  "description": "Mobile-first AI learning app with experimental role-based account foundation and personalised settings",
+  "description": "Mobile-first AI learning app with readable Tutor Markdown, tables and equations",
   "type": "module",
   "scripts": {
     "start": "node server.js",

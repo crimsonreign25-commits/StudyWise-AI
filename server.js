@@ -90,7 +90,8 @@ async function callProvider(provider, systemPrompt, question) {
     for (const model of models) {
       const response = await fetch(`${base}/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(provider.key)}`, {
         method: 'POST', headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ systemInstruction: { parts: [{ text: systemPrompt }] }, contents: [{ role: 'user', parts: [{ text: question }] }], generationConfig: { temperature: 0.3 } })
+        body: JSON.stringify({ systemInstruction: { parts: [{ text: systemPrompt }] }, contents: [{ role: 'user', parts: [{ text: question }] }], generationConfig: { temperature: 0.3 } }),
+        signal: AbortSignal.timeout(25000)
       });
       if (response.status === 404) {
         lastError = new Error(`Gemini model ${model} returned HTTP 404 (model unavailable at ${base})`);
@@ -110,7 +111,8 @@ async function callProvider(provider, systemPrompt, question) {
   }
   const response = await fetch(`${provider.base}/chat/completions`, {
     method: 'POST', headers: { 'content-type': 'application/json', authorization: `Bearer ${provider.key}` },
-    body: JSON.stringify({ model: provider.model, temperature: 0.3, messages: [{ role: 'system', content: systemPrompt }, { role: 'user', content: question }] })
+    body: JSON.stringify({ model: provider.model, temperature: 0.3, messages: [{ role: 'system', content: systemPrompt }, { role: 'user', content: question }] }),
+    signal: AbortSignal.timeout(25000)
   });
   if (!response.ok) throw new Error(`${provider.id} returned HTTP ${response.status}`);
   const data = await response.json();
@@ -125,7 +127,7 @@ async function tutorAnswer(question, subject, level, learnerContext = {}) {
   const failures = [];
   for (const provider of providers) {
     try { return { mode: 'live', provider: provider.id, answer: await callProvider(provider, systemPrompt, question) }; }
-    catch (error) { failures.push(`${provider.id}: ${error.message}`); }
+    catch (error) { failures.push(`${provider.id}: ${error.name === 'TimeoutError' ? 'request timed out after 25 seconds' : error.message}`); }
   }
   throw new Error(`All configured AI providers failed. ${failures.join('; ')}. Check key validity, model access, quota and provider status.`);
 }
@@ -142,7 +144,7 @@ const server = http.createServer(async (req, res) => {
     if (origin && req.headers.origin && !origin.split(',').map(x => x.trim()).includes(req.headers.origin)) return json(res, 403, { error: 'Origin not allowed' });
     if (req.method === 'OPTIONS') { res.writeHead(204, { 'access-control-allow-methods':'GET,POST,PUT,DELETE,OPTIONS', 'access-control-allow-headers':'content-type' }); return res.end(); }
     if (url.pathname.startsWith('/api/')) {
-      if (req.method === 'GET' && url.pathname === '/api/health') return json(res, 200, { ok: true, app: 'StudyWise AI', version: '2.1.4', aiConfigured: configuredProviders().length > 0, providers: configuredProviders().map(p => p.id), time: new Date().toISOString() });
+      if (req.method === 'GET' && url.pathname === '/api/health') return json(res, 200, { ok: true, app: 'StudyWise AI', version: '2.1.5', aiConfigured: configuredProviders().length > 0, providers: configuredProviders().map(p => p.id), time: new Date().toISOString() });
       if (req.method === 'GET' && url.pathname === '/api/accounts/status') return json(res, 200, { setupRequired: accounts.users.length === 0, roles: ROLES.filter(r => r !== 'creator').map(id => ({ id, label: ROLE_LABELS[id] })), sessionActive: Boolean(currentUser(req)) });
       if (req.method === 'POST' && url.pathname === '/api/accounts/setup-creator') {
         const b = await bodyJson(req); const setupSecret = process.env.CREATOR_SETUP_SECRET || '';

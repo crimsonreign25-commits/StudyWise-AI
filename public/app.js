@@ -147,6 +147,15 @@ $('#content').addEventListener('submit',async e=>{e.preventDefault();try{
  else if(e.target.id==='preferences-form'){state.theme=$('#pref-theme').value;state.preferences={language:$('#pref-language').value,textSize:$('#pref-text-size').value,notifications:$('#pref-notifications').value==='on',voice:$('#pref-voice').checked};localStorage.setItem('studywise-theme',state.theme);localStorage.setItem('studywise-preferences',JSON.stringify(state.preferences));document.body.dataset.theme=state.theme;document.documentElement.dataset.textSize=state.preferences.textSize;$('#theme-toggle').textContent=state.theme==='dark'?'☀ Light':'◐ Theme';render();toast('Settings saved on this device.')}
      else if(e.target.id==='profile-form'){const d=await api('/api/profile',{method:'POST',body:JSON.stringify({learnerId:state.learnerId,name:$('#profile-name').value,level:$('#profile-level').value,curriculum:$('#profile-curriculum').value})});state.profile={name:d.learner.name,level:d.learner.level,curriculum:d.learner.curriculum};await refreshProgress();render();toast('Profile saved.')}
  }catch(err){toast(err.message||'Something went wrong.')}});
-$$('.nav[data-view]').forEach(n=>n.addEventListener('click',()=>go(n.dataset.view)));
+$$('.nav[data-view]').forEach(n=>n.addEventListener('click',async()=>{
+  const view=n.dataset.view;
+  if(view==='library'){
+    go(view);
+    await loadLibraryResources();
+    render();
+  }else{
+    go(view);
+  }
+}));
 $('#menu-btn').addEventListener('click',()=>$('#sidebar').classList.toggle('open'));
 init();

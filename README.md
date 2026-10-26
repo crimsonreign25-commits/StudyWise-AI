@@ -158,3 +158,7 @@ The server can use `GROQ_API_KEY` with Groq's OpenAI-compatible API. Default pro
 ## Version 2.1.6 — Tutor answer formatting
 
 The browser Tutor now formats common Markdown headings, bold/italic text, ordered and unordered lists, horizontal separators, Markdown tables, and simple display equations into accessible HTML. The renderer escapes user/provider text before adding formatting markup; CSS makes answer tables scroll on small screens and improves spacing on phones. This is a presentation-only update and does not change AI provider credentials or production configuration.
+
+
+## 2.1.9.1 hotfix — Revision Library navigation
+The Revision library navigation item now loads `/api/resources` before rendering the page. This fixes the issue where tapping the sidebar item did not navigate to the library.

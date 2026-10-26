@@ -31,3 +31,17 @@ Keep your existing Render environment variables and service settings. The app us
 
 ## Checks
 Run `npm test` before deployment. Node.js 20 or newer is required.
+
+
+## Upgrade 2.1.9 — Revision Library Interface
+
+This upgrade adds a mobile-responsive **Revision library** screen to the app navigation. It reads `/api/resources`, supports searching and filtering by subject/type, shows approved resource metadata, and provides a clear empty state when the resource index has no entries. It also links learners to AI-generated practice through the existing tutor, clearly distinguished from official examination material.
+
+### Upload to GitHub
+1. Download and extract this ZIP.
+2. Open the extracted project folder and open its contents.
+3. Upload/replace the project files at the root of the `studywise-ai-2` branch (do not upload the containing folder as a nested folder).
+4. Wait for Render to deploy the new commit, then open the app and select **Revision library**.
+
+### Resource index
+Add only verified, rights-cleared entries to `resources/index.json`. Each resource can include `title`, `description`, `subject`, `level`, `curriculum`, `type`, `source`, `year`, and `url`. Do not claim an item is an official KNEC paper unless its source verifies that status. Do not upload protected full text without permission.

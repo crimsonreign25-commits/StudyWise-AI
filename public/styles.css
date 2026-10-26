@@ -36,3 +36,22 @@ body[data-theme="dark"] .answer-table th{background:#252f4d}
 .answer-quote{border-left:3px solid var(--blue);margin:1em 0;padding:.2em 0 .2em 1em;color:var(--muted)}.answer-quote p{margin:.3em 0}.answer-inline-math{font-family:ui-serif,Georgia,serif;font-weight:650}.answer-equation{overflow-x:auto;white-space:pre-wrap;overflow-wrap:anywhere}
 .answer-table-wrap{max-width:100%;overflow-x:auto;margin:.8em 0;border:1px solid var(--line);border-radius:9px}.answer-table{border-collapse:collapse;width:100%;font-size:inherit;line-height:1.6}.answer-table th,.answer-table td{padding:9px 10px;text-align:left;vertical-align:top;border-bottom:1px solid var(--line);min-width:85px}.answer-table th{background:var(--blue2)}
 body[data-theme="dark"] .answer-code-label{background:#252f4d}body[data-theme="dark"] .answer-box pre.answer-code{background:#111a2a;color:#e8edf8}
+
+
+/* Revision library interface */
+.library-controls{display:grid;grid-template-columns:2fr 1fr 1fr;gap:16px;margin-bottom:18px}
+.library-controls .field{min-width:0}
+.library-controls input,.library-controls select{width:100%;box-sizing:border-box}
+.library-results{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));gap:16px}
+.library-card{display:flex;flex-direction:column;align-items:flex-start;gap:10px}
+.library-card h3,.library-practice h2{margin:0}
+.library-card p,.library-practice p{color:var(--muted,#64748b);line-height:1.6;margin:0}
+.library-card-top,.library-meta{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.library-type,.library-meta span{font-size:.78rem;padding:5px 9px;border-radius:999px;background:var(--soft,#f1f5f9)}
+.library-open{display:inline-block;text-decoration:none;margin-top:auto}
+.library-status:empty{display:none}
+.library-status{margin:8px 0;color:var(--muted,#64748b)}
+.library-practice{margin-top:18px;display:flex;gap:20px;align-items:center;justify-content:space-between}
+.library-practice p{max-width:720px;margin-top:8px}
+.library-next-steps{text-align:left;line-height:1.8}
+@media(max-width:760px){.library-controls{grid-template-columns:1fr}.library-practice{align-items:flex-start;flex-direction:column}}

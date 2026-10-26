@@ -5,42 +5,43 @@ const $$ = (s, root=document) => [...root.querySelectorAll(s)];
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 function tutorInline(text) {
   let out = esc(text);
-  out = out.replace(/`([^`]+)`/g, '<code>$1</code>');
-  out = out.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+  out = out.replace(/`([^`\n]+)`/g, '<code class="answer-inline-code">$1</code>');
+  out = out.replace(/\*\*([^*\n]+)\*\*/g, '<strong>$1</strong>');
   out = out.replace(/(^|[^*])\*([^*\n]+)\*(?!\*)/g, '$1<em>$2</em>');
-  out = out.replace(/\\text\{([^{}]*)\}/g, '$1').replace(/\\underbrace\{([^{}]*)\}(?:_\{([^{}]*)\})?/g, '$1');
-  out = out.replace(/\\longrightarrow|\\rightarrow|→/g, ' → ')
-    .replace(/\\times/g, ' × ').replace(/\\;|\\,|\\:/g, ' ')
-    .replace(/\\left|\\right/g, '').replace(/[{}]/g, '')
-    .replace(/\\(?:mathrm|mathbf)\s*/g, '').replace(/\\/g, '')
-    .replace(/CO_?\{?2\}?/g, 'CO₂').replace(/H_?\{?2\}?O/g, 'H₂O').replace(/O_?\{?2\}?/g, 'O₂')
-    .replace(/C_?\{?6\}?H_?\{?12\}?O_?\{?6\}?/g, 'C₆H₁₂O₆');
+  out = out.replace(/\$([^$\n]+)\$/g, (_, m) => `<span class="answer-inline-math">${esc(tutorMath(m))}</span>`);
+  out = out.replace(/\\\((.+?)\\\)/g, (_, m) => `<span class="answer-inline-math">${esc(tutorMath(m))}</span>`);
+  out = out.replace(/CO_?\{?2\}?/g, 'CO₂').replace(/H_?\{?2\}?O/g, 'H₂O').replace(/O_?\{?2\}?/g, 'O₂').replace(/C_?\{?6\}?H_?\{?12\}?O_?\{?6\}?/g, 'C₆H₁₂O₆');
   return out;
 }
 function tutorMath(text) {
-  return tutorInline(String(text).replace(/\\\[|\\\]/g, '').replace(/\\underbrace\{([^{}]*)\}_\{([^{}]*)\}/g, '$1 ($2)').replace(/\\text\{([^{}]*)\}/g, '$1'));
+  return String(text).replace(/\\text\{([^{}]*)\}/g, '$1').replace(/\\underbrace\{([^{}]*)\}_\{([^{}]*)\}/g, '$1 ($2)')
+    .replace(/\\times\b/g, '×').replace(/\\cdot\b/g, '·').replace(/\\div\b/g, '÷').replace(/\\pm\b/g, '±')
+    .replace(/\\leq?\b/g, '≤').replace(/\\geq?\b/g, '≥').replace(/\\neq\b/g, '≠').replace(/\\rightarrow\b|\\longrightarrow\b/g, '→')
+    .replace(/\\pi\b/g, 'π').replace(/\\sqrt\{([^{}]+)\}/g, '√($1)').replace(/\\left|\\right/g, '').replace(/[{}]/g, '');
 }
 function formatTutorAnswer(raw) {
-  const lines = String(raw ?? '').replace(/\r/g, '').split('\n');
-  const html = []; let paragraph = [], listType = null, listItems = [], tableRows = [], inMath = false, mathLines = [];
-  const flushParagraph = () => { if (paragraph.length) { html.push(`<p>${paragraph.map(tutorInline).join('<br>')}</p>`); paragraph = []; } };
-  const flushList = () => { if (listItems.length) { html.push(`<${listType}>${listItems.map(x => `<li>${tutorInline(x)}</li>`).join('')}</${listType}>`); listItems = []; listType = null; } };
-  const flushTable = () => { if (tableRows.length) { const rows = tableRows.filter(r => !/^\s*\|?\s*:?-{3,}/.test(r)); if(rows.length){ const cells = r => r.trim().replace(/^\||\|$/g,'').split('|').map(c=>c.trim()); const header=cells(rows[0]); html.push('<div class="answer-table-wrap"><table class="answer-table"><thead><tr>'+header.map(c=>`<th>${tutorInline(c)}</th>`).join('')+'</tr></thead><tbody>'+rows.slice(1).map(r=>'<tr>'+cells(r).map(c=>`<td>${tutorInline(c)}</td>`).join('')+'</tr>').join('')+'</tbody></table></div>'); } tableRows=[]; } };
-  for (const line of lines) {
-    const t=line.trim();
-    if (inMath) { if (t.includes('\\]')) { mathLines.push(t.replace('\\]','')); html.push(`<div class="answer-equation">${tutorMath(mathLines.join(' '))}</div>`); mathLines=[]; inMath=false; } else mathLines.push(t); continue; }
-    if (t.startsWith('\\[')) { flushParagraph(); flushList(); flushTable(); inMath=true; mathLines=[t.replace('\\[','').replace('\\]','')]; if(t.includes('\\]')){html.push(`<div class="answer-equation">${tutorMath(mathLines.join(' '))}</div>`);mathLines=[];inMath=false;} continue; }
-    if (!t) { flushParagraph(); flushList(); flushTable(); continue; }
-    if (/^\|.*\|$/.test(t)) { flushParagraph(); flushList(); tableRows.push(t); continue; } else flushTable();
-    if (/^#{1,4}\s+/.test(t)) { flushParagraph(); flushList(); const n=t.match(/^#+/)[0].length; html.push(`<h${Math.min(n+1,5)}>${tutorInline(t.replace(/^#{1,4}\s+/,''))}</h${Math.min(n+1,5)}>`); continue; }
-    if (/^---+$/.test(t)) { flushParagraph(); flushList(); html.push('<hr>'); continue; }
-    const bullet=t.match(/^(?:[-*•])\s+(.+)/); const numbered=t.match(/^\d+[.)]\s+(.+)/);
-    if (bullet || numbered) { flushParagraph(); const kind=bullet?'ul':'ol'; if(listType && listType!==kind) flushList(); listType=kind; listItems.push((bullet||numbered)[1]); continue; }
-    flushList(); paragraph.push(t);
+  const lines = String(raw ?? '').replace(/\r\n?/g, '\n').split('\n');
+  const html=[]; let paragraph=[], listType=null, listItems=[], quote=[];
+  const flushParagraph=()=>{if(paragraph.length)html.push(`<p>${paragraph.map(tutorInline).join('<br>')}</p>`);paragraph=[];};
+  const flushList=()=>{if(listType)html.push(`<${listType}>${listItems.map(x=>`<li>${tutorInline(x)}</li>`).join('')}</${listType}>`);listType=null;listItems=[];};
+  const flushQuote=()=>{if(quote.length)html.push(`<blockquote class="answer-quote">${quote.map(x=>`<p>${tutorInline(x)}</p>`).join('')}</blockquote>`);quote=[];};
+  const flush=()=>{flushParagraph();flushList();flushQuote();};
+  const cells=line=>line.trim().replace(/^\|/,'').replace(/\|$/,'').split('|').map(x=>x.trim());
+  const divider=line=>cells(line).length>0&&cells(line).every(x=>/^:?-{3,}:?$/.test(x.replace(/\s/g,'')));
+  for(let i=0;i<lines.length;){const line=lines[i];
+    const fence=line.match(/^\s*```([\w+-]*)\s*$/);
+    if(fence){flush();const code=[];i++;while(i<lines.length&&!/^\s*```\s*$/.test(lines[i]))code.push(lines[i++]);if(i<lines.length)i++;const label=fence[1]?`<div class="answer-code-label">${esc(fence[1])}</div>`:'';html.push(`<div class="answer-code-wrap">${label}<pre class="answer-code"><code>${esc(code.join('\n'))}</code></pre></div>`);continue;}
+    if(/^\s*\$\$.*\$\$\s*$/.test(line)||/^\s*\\\[.*\\\]\s*$/.test(line)){flush();const m=line.trim().replace(/^\$\$|\$\$$/g,'').replace(/^\\\[|\\\]$/g,'');html.push(`<div class="answer-equation" role="math">${esc(tutorMath(m))}</div>`);i++;continue;}
+    if(/^\s*(\$\$|\\\[)\s*$/.test(line)){flush();const close=line.trim()==='$$'?'$$':'\\]';const math=[];i++;while(i<lines.length&&lines[i].trim()!==close)math.push(lines[i++]);if(i<lines.length)i++;html.push(`<div class="answer-equation" role="math">${esc(tutorMath(math.join('\n')))}</div>`);continue;}
+    if(line.includes('|')&&i+1<lines.length&&lines[i+1].includes('|')&&divider(lines[i+1])){flush();const head=cells(line);i+=2;const rows=[];while(i<lines.length&&lines[i].includes('|')&&lines[i].trim())rows.push(cells(lines[i++]));const th=`<thead><tr>${head.map(x=>`<th scope="col">${tutorInline(x)}</th>`).join('')}</tr></thead>`;const tb=`<tbody>${rows.map(r=>`<tr>${head.map((_,n)=>`<td>${tutorInline(r[n]??'')}</td>`).join('')}</tr>`).join('')}</tbody>`;html.push(`<div class="answer-table-wrap"><table class="answer-table">${th}${tb}</table></div>`);continue;}
+    if(!line.trim()){flush();i++;continue;}
+    const h=line.match(/^\s*(#{1,4})\s+(.+?)\s*#*\s*$/);if(h){flush();const n=Math.min(h[1].length+1,5);html.push(`<h${n}>${tutorInline(h[2])}</h${n}>`);i++;continue;}
+    if(/^\s*(---+|___+|\*\*\*+)\s*$/.test(line)){flush();html.push('<hr class="answer-divider">');i++;continue;}
+    const q=line.match(/^\s*>\s?(.*)$/);if(q){flushParagraph();flushList();quote.push(q[1]);i++;continue;}else flushQuote();
+    const b=line.match(/^\s*[-*+]\s+(.+)$/),n=line.match(/^\s*\d+[.)]\s+(.+)$/);if(b||n){flushParagraph();const type=b?'ul':'ol';if(listType&&listType!==type)flushList();listType=type;listItems.push((b||n)[1]);i++;continue;}
+    flushList();paragraph.push(line);i++;
   }
-  if(inMath && mathLines.length) html.push(`<div class="answer-equation">${tutorMath(mathLines.join(' '))}</div>`);
-  flushParagraph(); flushList(); flushTable();
-  return html.join('');
+  flush();return html.join('\n');
 }
 const fmtDate = s => { try { return new Date(s).toLocaleDateString(undefined,{day:'numeric',month:'short',year:'numeric'}); } catch { return ''; } };
 async function api(path, options={}) { const res = await fetch(path, {headers:{'content-type':'application/json',...(options.headers||{})},...options}); const data = await res.json(); if(!res.ok) throw new Error(data.error || `Request failed (${res.status})`); return data; }

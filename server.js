@@ -120,8 +120,33 @@ async function callProvider(provider, systemPrompt, question) {
   if (typeof answer !== 'string' || !answer.trim()) throw new Error(`${provider.id} returned an empty answer`);
   return answer.trim();
 }
+const RESOURCE_INDEX = path.join(__dirname, 'resources', 'index.json');
+async function loadRevisionResources() {
+  try {
+    const parsed = JSON.parse(await readFile(RESOURCE_INDEX, 'utf8'));
+    return Array.isArray(parsed.resources) ? parsed.resources : [];
+  } catch { return []; }
+}
+function findRevisionResources(resources, { question, subject, level, curriculum, topic }) {
+  const terms = `${question} ${subject} ${level} ${curriculum || ''} ${topic || ''}`.toLowerCase();
+  const words = [...new Set(terms.split(/[^a-z0-9]+/).filter(w => w.length > 2))];
+  return resources.map(resource => {
+    const metadata = `${resource.title || ''} ${resource.resourceType || ''} ${resource.curriculum || ''} ${resource.level || ''} ${resource.subject || ''} ${resource.topic || ''} ${(resource.tags || []).join(' ')}`.toLowerCase();
+    let score = 0;
+    if (String(resource.subject || '').toLowerCase() === String(subject || '').toLowerCase()) score += 8;
+    if (topic && String(resource.topic || '').toLowerCase().includes(String(topic).toLowerCase())) score += 7;
+    if (level && metadata.includes(String(level).toLowerCase())) score += 2;
+    if (curriculum && metadata.includes(String(curriculum).toLowerCase())) score += 2;
+    for (const word of words) if (metadata.includes(word)) score += 1;
+    return { resource, score };
+  }).filter(x => x.score > 0 && ['public-domain','licensed','permission-granted','link-only'].includes(String(x.resource.rights || '').toLowerCase()))
+    .sort((a,b) => b.score-a.score).slice(0,5).map(x => x.resource);
+}
+
 async function tutorAnswer(question, subject, level, learnerContext = {}) {
-  const systemPrompt = `You are StudyWise AI, a patient and encouraging tutor. Learner education level: ${level}; subject: ${subject}; curriculum: ${learnerContext.curriculum || 'not specified'}; topic: ${learnerContext.topic || 'not specified'}. Explain in age-appropriate, clear student-friendly language. Ask short guiding questions when useful, give worked examples and check understanding. For exam answers, match detail to marks when supplied. Never claim AI-generated questions are official exam papers. If curriculum details are uncertain, say so and ask for the official syllabus. End with one short check-for-understanding question when suitable.`;
+  const resources = findRevisionResources(await loadRevisionResources(), { question, subject, level, ...learnerContext });
+  const resourceContext = resources.length ? `\n\nVERIFIED REVISION RESOURCES (use only these supplied records; do not invent details):\n${resources.map((r, i) => `[${i+1}] ${r.title || 'Untitled'} | ${r.resourceType || 'resource'} | ${r.year || 'year not specified'} | ${r.sourceName || 'source not specified'} | ${r.sourceUrl || 'no URL'}\nSubject/topic: ${r.subject || ''} / ${r.topic || ''}\nPermitted excerpt: ${String(r.contentText || '').slice(0, 3500)}`).join('\n\n').slice(0, 12000)}\nCite any used item by its title/year/source. If these records do not contain the requested paper or answer, say so and do not pretend that a paper was retrieved.` : '\n\nNo verified revision resources matched this request. Do not claim to have searched or retrieved an actual past paper; answer from knowledge or create clearly labelled original practice questions.';
+  const systemPrompt = `You are StudyWise AI Tutor: an accurate, patient, inclusive tutor for learners across subjects and courses. Learner level: ${level}; subject: ${subject}; curriculum: ${learnerContext.curriculum || 'not specified'}; topic: ${learnerContext.topic || 'not specified'}. Answer the actual question first, then explain in clear, age-appropriate student language. For mathematics, show the formula or method, substitution, ordered working, units and final answer; check the result where practical. For sciences, define key terms and explain processes accurately. For languages, use the requested language and correct register. For humanities and religious studies, give relevant points with short explanations and examples. For technical/TVET and university subjects, adapt depth to the course and include safety where relevant. For exam answers, match detail to marks when supplied. Use valid Markdown headings, lists, tables and worked steps where useful; never return HTML. Do not invent official marking schemes, paper years, question numbers, citations or sources. Never describe generated questions as official past papers. If asked for predictions, give cautious revision priorities based on evidence, never guaranteed or leaked questions. If syllabus details are uncertain, say so. If a subject or course is unfamiliar, still help with the underlying concept and acknowledge any limits. End with one short check-for-understanding question when suitable.${resourceContext}`;
   const providers = configuredProviders();
   if (!providers.length) return { mode: 'demo', provider: 'demo', answer: demoExplain(question, subject), note: 'No supported AI API key is configured. This is demo guidance, not a live AI response.' };
   const failures = [];
@@ -180,6 +205,7 @@ const server = http.createServer(async (req, res) => {
       if (req.method === 'POST' && disableMatch) { const actor = requireUser(req, res); if (!actor) return; const target = accounts.users.find(x => x.id === disableMatch[1]); if (!target) return json(res, 404, { error: 'Account not found.' }); if (target.role === 'creator' || !canCreate(actor.role, target.role) || (actor.role === 'institution_admin' && target.institutionId !== actor.institutionId)) return json(res, 403, { error: 'You cannot disable this account.' }); target.active = false; audit('account_disabled', actor.id, target.id); await saveAccounts(); return json(res, 200, { user: publicUser(target) }); }
       if (req.method === 'GET' && url.pathname === '/api/accounts/audit') { const actor = requireUser(req, res); if (!actor) return; if (actor.role !== 'creator') return json(res, 403, { error: 'Only the Creator can view the platform audit log.' }); return json(res, 200, { events: accounts.audit.slice(-200).reverse() }); }
       if (req.method === 'GET' && url.pathname === '/api/curriculum') return json(res, 200, { curriculum, subjects, educationLevels: ['Early years','Primary','Lower secondary','Upper secondary','TVET / vocational','College','Undergraduate','Postgraduate','Professional learning','Lifelong learning'], curriculumNote: 'This is an expandable starter directory, not a claim that every national syllabus has been verified.' });
+      if (req.method === 'GET' && url.pathname === '/api/resources') { const all = await loadRevisionResources(); const q = cleanText(url.searchParams.get('q'), 200).toLowerCase(); const subject = cleanText(url.searchParams.get('subject'), 100).toLowerCase(); const topic = cleanText(url.searchParams.get('topic'), 160).toLowerCase(); const type = cleanText(url.searchParams.get('type'), 80).toLowerCase(); const results = all.filter(r => ['public-domain','licensed','permission-granted','link-only'].includes(String(r.rights || '').toLowerCase()) && (!q || `${r.title||''} ${r.subject||''} ${r.topic||''} ${(r.tags||[]).join(' ')}`.toLowerCase().includes(q)) && (!subject || String(r.subject||'').toLowerCase()===subject) && (!topic || String(r.topic||'').toLowerCase().includes(topic)) && (!type || String(r.resourceType||'').toLowerCase()===type)).slice(0,50); return json(res, 200, { resources: results.map(({contentText, ...r}) => r), count: results.length, libraryCount: all.length, note: all.length ? 'Only indexed, rights-cleared resources are listed.' : 'The resource index is currently empty. Add verified, rights-cleared resources to resources/index.json.' }); }
       if (req.method === 'GET' && url.pathname === '/api/quiz') {
         const subject = url.searchParams.get('subject') || 'Mathematics';
         const items = sampleQuiz.filter(q => q.subject === subject);

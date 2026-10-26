@@ -26,3 +26,13 @@ body[data-theme="dark"] .panel,body[data-theme="dark"] .stat-card,body[data-them
 body[data-theme="dark"] .answer-box code{background:#252f4d;color:#e2e8f5}
 body[data-theme="dark"] .answer-table th{background:#252f4d}
 @media(max-width:480px){.answer-box{padding:13px;font-size:13px}.answer-table th,.answer-table td{padding:8px;font-size:12px;min-width:80px}.answer-equation{font-size:1em;padding:10px 7px}}
+
+/* StudyWise 2.1.7 tutor readability */
+.answer-box{white-space:normal;overflow-wrap:anywhere;word-break:normal;max-width:100%;line-height:1.8}
+.answer-box p{margin:.45em 0 .85em}.answer-box h2,.answer-box h3,.answer-box h4,.answer-box h5{line-height:1.4;margin:1.2em 0 .5em;color:var(--ink)}
+.answer-box h2{font-size:1.2em}.answer-box h3{font-size:1.1em}.answer-box ul,.answer-box ol{padding-left:1.5em;margin:.45em 0 .9em;line-height:1.8}.answer-box li{margin:.2em 0}
+.answer-box .answer-inline-code,.answer-box .answer-code{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;background:#edf1f8;border-radius:5px;padding:.12em .35em}
+.answer-code-wrap{margin:1em 0;border:1px solid var(--line);border-radius:9px;overflow:hidden}.answer-code-label{padding:6px 10px;background:var(--blue2);font-size:.8em;font-weight:800}.answer-box pre.answer-code{margin:0;padding:12px;overflow:auto;background:#f5f7fb;white-space:pre;line-height:1.6}.answer-box pre.answer-code code{background:transparent;padding:0;white-space:pre}
+.answer-quote{border-left:3px solid var(--blue);margin:1em 0;padding:.2em 0 .2em 1em;color:var(--muted)}.answer-quote p{margin:.3em 0}.answer-inline-math{font-family:ui-serif,Georgia,serif;font-weight:650}.answer-equation{overflow-x:auto;white-space:pre-wrap;overflow-wrap:anywhere}
+.answer-table-wrap{max-width:100%;overflow-x:auto;margin:.8em 0;border:1px solid var(--line);border-radius:9px}.answer-table{border-collapse:collapse;width:100%;font-size:inherit;line-height:1.6}.answer-table th,.answer-table td{padding:9px 10px;text-align:left;vertical-align:top;border-bottom:1px solid var(--line);min-width:85px}.answer-table th{background:var(--blue2)}
+body[data-theme="dark"] .answer-code-label{background:#252f4d}body[data-theme="dark"] .answer-box pre.answer-code{background:#111a2a;color:#e8edf8}

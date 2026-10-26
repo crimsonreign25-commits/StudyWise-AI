@@ -19,7 +19,18 @@ export const curriculum = [
   { id: 'sg', name: 'Singapore curriculum', description: 'Framework option; verify current subject and examination syllabuses.' },
   { id: 'global', name: 'Global / self-directed learning', description: 'Explore a topic beyond formal school curricula.' }
 ];
-export const subjects = ['Mathematics','English','Kiswahili','Biology','Chemistry','Computer Studies','History','CRE'];
+export const subjects = [
+  'Mathematics','English','Kiswahili','Biology','Chemistry','Physics','History and Government','Geography',
+  'CRE','IRE','HRE','Business Studies','Agriculture','Computer Studies','Home Science','Art and Design','Music',
+  'French','German','Arabic','Kenyan Sign Language','Physical Education','General Science','Aviation Technology',
+  'Building Construction','Electricity','Power Mechanics','Drawing and Design','Woodwork','Metalwork','Foods and Nutrition',
+  'Environmental Studies','Integrated Science','Social Studies','Creative Arts','Pre-Technical Studies','Agriculture and Nutrition',
+  'Engineering','Computer Science','Information Technology','Programming','Data Science','Statistics','Economics','Accounting',
+  'Entrepreneurship','Law','Education','Psychology','Sociology','Political Science','Communication','Literature','Linguistics',
+  'Philosophy','Religious Studies','Nursing','Public Health','Anatomy','Physiology','Pharmacology','Hospitality and Tourism',
+  'Culinary Arts','Electrical Installation','Plumbing','Welding','Automotive Technology','Mechatronics','Graphic Design',
+  'Media Studies','Project Management','Research Methods','General / Custom Subject'
+];
 export const sampleQuiz = [
   { id:'math-1', subject:'Mathematics', topic:'Algebra', question:'Factorise: x² + 5x + 6', options:['(x + 2)(x + 3)','(x + 1)(x + 6)','(x - 2)(x - 3)','(x + 5)(x + 1)'], answer:'(x + 2)(x + 3)', explanation:'Find two numbers whose product is 6 and sum is 5: 2 and 3. Therefore x² + 5x + 6 = (x + 2)(x + 3).' },
   { id:'math-2', subject:'Mathematics', topic:'Indices', question:'Simplify: 2³ × 2²', options:['2⁵ = 32','2⁶ = 64','4⁵ = 1024','2¹ = 2'], answer:'2⁵ = 32', explanation:'When multiplying powers with the same base, add the indices: 2³ × 2² = 2^(3+2) = 2⁵ = 32.' },

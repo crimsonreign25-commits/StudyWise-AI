@@ -1,0 +1,15 @@
+{
+  "name": "studywise-ai",
+  "version": "2.1.7",
+  "private": true,
+  "description": "Mobile-first inclusive learning app with improved Tutor Markdown, broader subject catalogue, and revision-resource library scaffold",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

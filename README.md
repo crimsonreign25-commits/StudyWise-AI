@@ -22,7 +22,7 @@ Open `http://localhost:10000`. The server uses Node's built-in modules, so there
 
 To enable live AI, configure one or more provider keys in your hosting environment. Gemini is tried first by default, then Grok, then OpenAI. The server checks configured providers and attempts the next provider if one fails. This does not make paid APIs free; provider billing, free-tier quotas, model availability and terms still apply. Never commit `.env` or put API keys in browser JavaScript.
 
-- Gemini: `GEMINI_API_KEY` (aliases `GOOGLE_API_KEY`, `GOOGLE_AI_API_KEY`); default model `gemini-3.8-flash`; optional `GEMINI_MODEL`. If a model returns HTTP 404, the server tries `gemini-3.8-flash`, `gemini-3.5-flash-lite`, and `gemini-2.5-flash` (without repeating models) before moving to the next configured provider. Gemini 2.0 Flash is retired and is not used as a fallback. Optional `GEMINI_API_BASE_URL` overrides the API base. A 401/403 or quota error is reported rather than mislabelled as a missing model.
+- Gemini: `GEMINI_API_KEY` (aliases `GOOGLE_API_KEY`, `GOOGLE_AI_API_KEY`); default model `gemini-2.5-flash`; optional `GEMINI_MODEL`.
 - Grok: `XAI_API_KEY` (alias `GROK_API_KEY`); default model `grok-3-mini`; optional `GROK_MODEL`.
 - OpenAI: `OPENAI_API_KEY`; default model `gpt-4o-mini`; optional `OPENAI_MODEL` (or legacy `AI_MODEL`) and `OPENAI_BASE_URL`.
 - Optional provider order: `AI_PROVIDER_ORDER=gemini,grok,openai`.
@@ -120,41 +120,3 @@ Before the first setup, configure a long random `CREATOR_SETUP_SECRET` in Render
 This is an **experimental account foundation**, not a public-launch-ready identity system. Account records currently use a local JSON file and login sessions are held in server memory; this means accounts may not survive ephemeral hosting storage and users are signed out on server restart. Email verification, password change/reset, MFA, robust login throttling, persistent sessions, database-backed transactions, and full account-to-learning-data ownership are not implemented. In particular, the original learning/progress endpoints still accept anonymous learner IDs and are not yet bound to these account sessions. Do not use real student records or sensitive information yet. Before launch, move accounts and learning data to a persistent PostgreSQL/Supabase database with row-level security, enforce authentication/ownership on every learner endpoint, add rate limiting and recovery controls, and run a security review.
 
 Run `npm test` to run the automated checks. The tests cover the one-time Creator setup gate, invalid credentials, password sign-in, role restrictions, institution-scoped user creation/listing, and audit-log access.
-
-
-## StudyWise 2.1.1 — personalised Settings update
-
-- Added a dedicated **Settings** item in the learning-space side menu while keeping **Learner profile** separate.
-- Settings shows role-aware sections for Creator/Super Admin, Institution Administrator, Teacher, Learner, Parent/Guardian, Support Staff, and signed-out visitors.
-- Personal preferences include light/dark appearance, preferred language, text size, voice/read-aloud preference, and a study-reminder preference.
-- The preferences currently save in this browser/device only. Cross-device sync and actual notification delivery require the later database/account integration. Language selection is a saved preference; it does not yet translate every part of the app.
-- Creator API credentials remain server-side environment variables and must never be entered into browser settings.
-- Service-worker cache version was bumped so the new Settings interface can replace the older cached shell after deployment.
-
-### Settings validation
-
-The test suite includes checks for the separate navigation item, role-aware settings sections, preference controls, and responsive/accessibility styling. These tests verify the Settings interface foundation; they do not make the overall starter app production-ready.
-
-
-## StudyWise 2.1.2 — AI Tutor reliability patch
-
-- Gemini model HTTP 404 now triggers a retry against supported fallback model names before provider failover.
-- Gemini API error messages are included where the provider returns a useful message, making Render logs and Tutor errors more actionable.
-- `GEMINI_API_BASE_URL` is configurable for diagnostics or provider-compatible deployments. Leave it at the official default unless you have a specific reason to change it.
-- This code-level fix cannot guarantee live answers without a valid server-side API key, model access, quota, and provider availability. If all providers fail, verify the key/model and configure a fallback provider. Never place API keys in frontend code or commit them to GitHub.
-
-
-## Groq fallback (2.1.4)
-
-The server can use `GROQ_API_KEY` with Groq's OpenAI-compatible API. Default provider order is Gemini, Groq, Grok (xAI), then OpenAI. If a provider request fails, the Tutor continues to the next configured provider. Optional `GROQ_MODEL` defaults to `llama-3.3-70b-versatile`; confirm current model availability and quota in your Groq console. Set `AI_PROVIDER_ORDER` to override the order. Never commit API keys.
-
-
-## Version 2.1.5 Tutor reliability fix
-- Adds a 25-second timeout to AI provider requests so a stalled provider cannot keep the server request waiting indefinitely.
-- Shows tutor errors in the page and restores the submit button instead of leaving the page on “Working on your explanation…”.
-- Keeps provider API keys in Render environment variables; never add secrets to this ZIP or GitHub.
-
-
-## Version 2.1.6 — Tutor answer formatting
-
-The browser Tutor now formats common Markdown headings, bold/italic text, ordered and unordered lists, horizontal separators, Markdown tables, and simple display equations into accessible HTML. The renderer escapes user/provider text before adding formatting markup; CSS makes answer tables scroll on small screens and improves spacing on phones. This is a presentation-only update and does not change AI provider credentials or production configuration.

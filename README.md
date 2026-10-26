@@ -1,93 +1,122 @@
-# StudyWise AI 2.0 — learning and security foundation
+# StudyWise AI 2.0 — Foundation Upgrade
 
-StudyWise AI is a mobile-first learning platform foundation designed first for Kenyan secondary-school/KCSE revision and expandable to other school systems, vocational learning, college, university and lifelong learning.
+A mobile-first learning and revision web app, designed initially for Kenyan secondary-school learners. It includes a dashboard, subject practice quizzes, answer explanations, an error book, personal notes, a study planner, a learner profile, and an optional AI tutor API integration.
 
-## Included in this upgrade
-
-- Existing learning dashboard, subject directory, original practice questions, explanations, progress, error book, notes and study planner.
-- AI tutor integration for Gemini, Groq, Grok/xAI and OpenAI. Keys stay on the server; provider order is configurable. API availability, model access and billing depend on the provider account.
-- Sign-up and sign-in using server-side password hashing (`scrypt`) and opaque, hashed session tokens in PostgreSQL.
-- HttpOnly, Secure, SameSite session cookies; sign-out; basic per-IP account-attempt throttling.
-- Creator bootstrap protected by a private deployment secret and blocked after a creator exists. Public sign-up always creates a learner account; it cannot select an elevated role.
-- Role records for creator, institution administrator, teacher, learner, parent/guardian and support staff; restricted role assignment, institution records, and audit events for role/institution changes and account sign-in/registration.
-- Eight visual theme categories expanded to a 50-choice theme gallery, saved locally on the current device.
-- Global curriculum directory and age-appropriate tutor prompt, while making clear that a directory entry does not mean a syllabus has been fully verified.
-- Tests for curriculum/practice data and checks for the security foundation.
-
-## Important status: foundation, not yet a full production school platform
-
-This release is a meaningful security and account foundation, **not a completed production-grade multi-tenant education service**. Before inviting real students, finish and independently review the following:
-
-1. Move progress, notes, plans and error-book data from `data/progress.json` into PostgreSQL tables with ownership/institution foreign keys and transaction-based access controls. The current progress store is keyed by authenticated account ID, but remains a JSON file and may be ephemeral on Render.
-2. Build complete teacher/class, parent-child consent/linking, support-staff, institution onboarding and creator-management screens. Teacher/parent access to another learner is deliberately not granted by the current endpoints.
-3. Add verified email, password reset/recovery, account deletion/export workflows, consent and age-appropriate privacy notices, retention rules, backups and incident response.
-4. Add stronger deployment-grade abuse controls (distributed rate limits, CSRF/origin policy, monitoring, security review and restore drills). The current per-process login throttling is a basic first layer, not a substitute for a managed control.
-5. Add automated integration tests against a real disposable PostgreSQL database and run a security review before launch. Current tests include source-level security checks and are not a penetration test.
-6. Expand reviewed curriculum maps and question banks. Sample practice questions are original learning content and are not official KNEC examination papers.
-
-Do not use this foundation to store highly sensitive student or medical data. Collect only the information needed to teach. Follow applicable privacy and child-protection requirements before onboarding minors or institutions.
+> **Important:** Included questions are original sample practice questions, not official KNEC papers. This first version is a working starter release, not yet a production-ready multi-user education service.
 
 ## Requirements
 
-- Node.js 20+ (Render configuration targets Node 22)
-- npm
-- Managed PostgreSQL database (required for account/authentication routes)
-- Optional AI API key(s)
+- Node.js 20 or newer (Render configuration targets Node 22)
+- npm (bundled with Node)
+- Optional: Gemini, Grok (xAI), or OpenAI API key to enable live tutor responses
 
-## Run and test
+## Run locally
 
 ```bash
 npm install
 cp .env.example .env
-npm test
 npm start
 ```
 
-Set the environment variables through your host's secret/environment settings, not in GitHub or browser code. Account access is intentionally unavailable if `DATABASE_URL` is not configured.
+Open `http://localhost:10000`. The server uses Node's built-in modules, so there are no runtime npm dependencies to install. You can also run `npm test` to run the starter test suite.
 
-## Render deployment for the new branch/service
+To enable live AI, configure one or more provider keys in your hosting environment. Gemini is tried first by default, then Grok, then OpenAI. The server checks configured providers and attempts the next provider if one fails. This does not make paid APIs free; provider billing, free-tier quotas, model availability and terms still apply. Never commit `.env` or put API keys in browser JavaScript.
 
-Keep the existing live service unchanged. Apply this ZIP only to the separate `studywise-ai-2` branch and the new Render service.
+- Gemini: `GEMINI_API_KEY` (aliases `GOOGLE_API_KEY`, `GOOGLE_AI_API_KEY`); default model `gemini-2.5-flash`; optional `GEMINI_MODEL`.
+- Grok: `XAI_API_KEY` (alias `GROK_API_KEY`); default model `grok-3-mini`; optional `GROK_MODEL`.
+- OpenAI: `OPENAI_API_KEY`; default model `gpt-4o-mini`; optional `OPENAI_MODEL` (or legacy `AI_MODEL`) and `OPENAI_BASE_URL`.
+- Optional provider order: `AI_PROVIDER_ORDER=gemini,grok,openai`.
 
-1. Create a managed PostgreSQL database in Render and copy its **internal connection string** into the new web service as `DATABASE_URL`.
-2. Set `CREATOR_BOOTSTRAP_SECRET` to a long random secret (at least 32 random characters). Keep it private; do not commit it, paste it into public issues, or put it in frontend code. Once the creator account has been created, the endpoint refuses to bootstrap another creator.
-3. Set the build command to `npm install`, start command to `npm start`, and health check to `/api/health`.
-4. Add any AI provider keys you have chosen: `GEMINI_API_KEY`, `GROQ_API_KEY`, `XAI_API_KEY`, and/or `OPENAI_API_KEY`. They are optional for the account layer. Use `AI_PROVIDER_ORDER=gemini,groq,grok,openai` to choose fallback order.
-5. Deploy the new branch/service. Check `/api/health`; it reports whether the database and AI providers are configured, but never returns secret values.
-6. Open the site and choose **Creator setup** for the one-time creator account. Enter the deployment secret, creator display name, email and a strong unique password. After bootstrap, use ordinary sign-in.
-7. Test account creation/sign-in/sign-out, learner progress ownership, role assignment, institution creation and audit access before inviting anyone else.
+If no key is configured, the tutor labels its response as demo guidance. If all configured providers fail, the app returns an explicit error instead of silently pretending a live answer was generated.
 
-If a deployment is missing the database, account and private-record routes return a setup error rather than falling back to anonymous access.
+## Deploy to Render
 
-## Environment variables
+1. Create a new GitHub repository for this project and upload the **contents** of this folder to the repository root.
+2. In Render, choose **New → Web Service**, connect that repository, and use:
+   - Runtime: Node
+   - Build command: `npm install`
+   - Start command: `npm start`
+   - Health check path: `/api/health`
+3. Add your Gemini and/or Grok keys in Render Environment settings; OpenAI is optional. Do not commit secrets. Save and deploy the environment changes.
+4. Deploy and check `https://YOUR-SERVICE.onrender.com/api/health`. A successful response includes `ok: true` and `aiConfigured`.
+5. Open the service URL and test a quiz, error-book entry, note, and study plan.
 
-- `DATABASE_URL` — PostgreSQL connection string; required for account/role features.
-- `CREATOR_BOOTSTRAP_SECRET` — private one-time creator setup secret.
-- `GEMINI_API_KEY`, `GROQ_API_KEY`, `XAI_API_KEY`, `OPENAI_API_KEY` — optional server-side AI credentials.
-- `GEMINI_MODEL`, `GROQ_MODEL`, `GROK_MODEL`, `OPENAI_MODEL` — optional model choices.
-- `AI_PROVIDER_ORDER` — optional comma-separated provider order.
-- `ALLOWED_ORIGIN` — optional comma-separated origin allowlist if serving the API separately.
-- `PORT` — hosting port; Render sets this automatically.
+`render.yaml` is included as a Blueprint reference. Render's ephemeral filesystem may not preserve the JSON progress file across restarts or deployments on all service plans. For a real public launch, migrate progress to Supabase/Postgres and configure durable storage or managed database persistence.
 
-## API overview
+## API endpoints
 
-Public: `GET /api/health`, `GET /api/curriculum`, `GET /api/quiz`, `POST /api/tutor`, `GET /api/auth/me`, `POST /api/auth/register`, `POST /api/auth/login`, `POST /api/auth/logout`, and one-time `POST /api/auth/bootstrap-creator`.
+- `GET /api/health` — health and AI configuration status
+- `GET /api/curriculum` — starter curriculum directory, education-level options and subjects
+- `GET /api/health` — reports which provider names are configured (never returns keys)
+- `GET /api/quiz?subject=Mathematics` — original practice questions (answers are not exposed); optional `topic` and `paper` filters
+- `POST /api/attempt` — check and persist an answer attempt
+- `GET /api/progress?learnerId=...` — read progress for the anonymous learner ID
+- `POST /api/tutor` — demo explanation or live AI response
+- `POST /api/profile` — save learner profile
+- `POST /api/notes` and `POST /api/notes/delete` — notes
+- `POST /api/plan` — generate and save a study plan
+- `POST /api/error-book/remove` — mark an error-book question reviewed
 
-Authenticated learning: `GET /api/progress`, `POST /api/attempt`, `POST /api/profile`, `POST /api/error-book/remove`, `POST /api/notes`, `POST /api/notes/delete`, `POST /api/plan`.
+## StudyWise 2.0 foundation update
 
-Restricted administration: `POST /api/admin/institutions`, `GET /api/admin/users`, `POST /api/admin/assign-role`, `GET /api/admin/audit`.
+- Added server-side provider detection and fallback for Gemini, Grok and optional OpenAI.
+- Added a starter global curriculum directory for Kenya CBC/CBE, Cambridge/IGCSE, IB, UK nations, US, South Africa, Nigeria, India, Tanzania, Uganda, Rwanda, Ghana, Australia, Canada, New Zealand, Singapore and global self-directed learning. These are directory entries, **not yet fully verified syllabus integrations**.
+- Expanded original sample question bank from 9 to 26 questions and added topic/paper metadata to selected items.
+- Added splash screen, light/dark appearance preference, browser speech input/output where supported, and local last-view continuity.
+- The global directory and sample question bank are only a foundation. Curriculum mapping, larger reviewed question banks, topic mastery reports, retesting and official paper mapping remain follow-up work.
+- The current profile still uses an anonymous device identifier. Secure student, parent, teacher, organisation and admin accounts are **not implemented in this release**. Do not use this release for real student accounts or sensitive institutional records.
+
+## Current limitations before public launch
+
+- No authentication, password reset, or verified student/teacher accounts yet.
+- The anonymous learner ID is a convenience identifier, **not a security boundary**; do not use this JSON-storage version for sensitive or multi-user student records.
+- Progress uses a local JSON file. Move to Supabase/Postgres with row-level security before public multi-user use.
+- No subscription or payment processing is implemented.
+- AI tutor answers depend on a configured third-party provider, its pricing, availability, and terms. Review output for accuracy.
+- Curriculum alignment and official past-paper content need a separate verified content pipeline and appropriate rights.
 
 ## Project layout
 
 ```text
 studywise-ai/
-├── public/                  # app interface, CSS, browser JavaScript
-├── data/                    # current progress JSON store; migrate before production
-├── test/                    # automated tests
-├── src-content.js           # starter curriculum and original sample questions
-├── server.js                # API, authentication, role gates and AI providers
+├── public/
+│   ├── index.html
+│   ├── styles.css
+│   └── app.js
+├── data/                  # generated progress store; not committed
+├── test/app.test.js
+├── src-content.js         # sample curriculum, subjects and practice questions
+├── server.js
 ├── package.json
 ├── render.yaml
 ├── .env.example
 └── README.md
 ```
+
+
+## Public internet access and installable app
+
+Deploy this project as a **Web Service** on Render using `npm install` (or `npm ci` if a lockfile is present) and `npm start`. Render assigns a public HTTPS URL, which learners can open worldwide. The `render.yaml` file describes a starter service; connect the repository and branch in the Render dashboard and verify the health endpoint at `/api/health`. A deployment being Live does not by itself mean every AI provider is configured.
+
+This project now includes a Progressive Web App manifest, install prompt, app icons and a service worker that caches the app shell. On supported browsers, use the Install button or the browser menu's **Install app / Add to Home screen** option. Offline support is limited to the cached interface and static assets: tutor calls and server-backed progress still require a working internet connection. Service-worker installation requires HTTPS (Render provides HTTPS) or localhost.
+
+## Downloading and important limits
+
+The source project can be downloaded as a ZIP from the repository or release package. A PWA is not the same as an Android APK; a signed APK would require a separate Android packaging and testing step.
+
+**Account and data warning:** this foundation still does not have real authenticated accounts. The current learner ID is client-generated and is not an access-control boundary. Do not store sensitive student information or treat records as private between users. The JSON file store may not persist across all Render restarts/deployments. Before a public launch with real student accounts, implement verified authentication, server-side authorization, persistent database storage with tenant isolation, and appropriate privacy controls.
+
+
+## Experimental account foundation (v2.1.0)
+
+Open `/accounts.html` or use the **Account** link in the app to access the account centre. The account API supports one-time Creator setup, sign-in/sign-out, server-side password hashing with scrypt, HttpOnly SameSite session cookies, role-aware account creation, institution-scoped account listings, account disabling, and a Creator-only audit log. Supported role IDs are `creator`, `institution_admin`, `teacher`, `learner`, `parent_guardian`, and `support_staff`.
+
+### Creator setup
+
+Before the first setup, configure a long random `CREATOR_SETUP_SECRET` in Render's environment settings. Keep it private; never commit it to GitHub or paste it into public issues. Visit `/accounts.html`, create the Creator account once, and store its login details securely. Creator setup is rejected once any account exists. If the secret is not configured, Creator setup is intentionally unavailable.
+
+### Important security status
+
+This is an **experimental account foundation**, not a public-launch-ready identity system. Account records currently use a local JSON file and login sessions are held in server memory; this means accounts may not survive ephemeral hosting storage and users are signed out on server restart. Email verification, password change/reset, MFA, robust login throttling, persistent sessions, database-backed transactions, and full account-to-learning-data ownership are not implemented. In particular, the original learning/progress endpoints still accept anonymous learner IDs and are not yet bound to these account sessions. Do not use real student records or sensitive information yet. Before launch, move accounts and learning data to a persistent PostgreSQL/Supabase database with row-level security, enforce authentication/ownership on every learner endpoint, add rate limiting and recovery controls, and run a security review.
+
+Run `npm test` to run the automated checks. The tests cover the one-time Creator setup gate, invalid credentials, password sign-in, role restrictions, institution-scoped user creation/listing, and audit-log access.

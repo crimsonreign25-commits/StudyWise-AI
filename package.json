@@ -1,8 +1,8 @@
 {
   "name": "studywise-ai",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "private": true,
-  "description": "StudyWise AI 2.0: personalised learning, AI tutoring, account security and role-based administration",
+  "description": "Mobile-first AI learning app with experimental role-based account foundation",
   "type": "module",
   "scripts": {
     "start": "node server.js",
@@ -11,8 +11,5 @@
   },
   "engines": {
     "node": ">=20"
-  },
-  "dependencies": {
-    "pg": "^8.16.3"
   }
 }

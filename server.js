@@ -14,6 +14,12 @@ const DATA_FILE = path.join(DATA_DIR, 'progress.json');
 const ACCOUNTS_FILE = path.join(DATA_DIR, 'accounts.json');
 const scrypt = promisify(scryptCb);
 const sessions = new Map();
+// Short, server-enforced guest allowances (in-memory; reset on server restart).
+const guestUsage = new Map();
+const GUEST_TUTOR_LIMIT = 3;
+const GUEST_PRACTICE_LIMIT = 5;
+function guestKey(req) { return String(req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'unknown').split(',')[0].trim(); }
+function guestAllowance(req, kind) { const key = `${guestKey(req)}:${new Date().toISOString().slice(0,10)}`; const row = guestUsage.get(key) || { tutor: 0, practice: 0 }; const limit = kind === 'tutor' ? GUEST_TUTOR_LIMIT : GUEST_PRACTICE_LIMIT; if (row[kind] >= limit) return { allowed:false, remaining:0, limit }; row[kind]++; guestUsage.set(key,row); return { allowed:true, remaining:limit-row[kind], limit }; }
 const SESSION_TTL_MS = 8 * 60 * 60 * 1000;
 const ROLES = ['creator', 'institution_admin', 'teacher', 'learner', 'parent_guardian', 'support_staff'];
 const ROLE_LABELS = { creator: 'Creator / Super Admin', institution_admin: 'Institution Administrator', teacher: 'Teacher', learner: 'Learner', parent_guardian: 'Parent / Guardian', support_staff: 'Support Staff' };
@@ -169,7 +175,7 @@ const server = http.createServer(async (req, res) => {
     if (origin && req.headers.origin && !origin.split(',').map(x => x.trim()).includes(req.headers.origin)) return json(res, 403, { error: 'Origin not allowed' });
     if (req.method === 'OPTIONS') { res.writeHead(204, { 'access-control-allow-methods':'GET,POST,PUT,DELETE,OPTIONS', 'access-control-allow-headers':'content-type' }); return res.end(); }
     if (url.pathname.startsWith('/api/')) {
-      if (req.method === 'GET' && url.pathname === '/api/health') return json(res, 200, { ok: true, app: 'StudyWise AI', version: '2.1.5', aiConfigured: configuredProviders().length > 0, providers: configuredProviders().map(p => p.id), time: new Date().toISOString() });
+      if (req.method === 'GET' && url.pathname === '/api/health') return json(res, 200, { ok: true, app: 'StudyWise AI', version: '2.1.11', aiConfigured: configuredProviders().length > 0, providers: configuredProviders().map(p => p.id), time: new Date().toISOString() });
       if (req.method === 'GET' && url.pathname === '/api/accounts/status') return json(res, 200, { setupRequired: accounts.users.length === 0, roles: ROLES.filter(r => r !== 'creator').map(id => ({ id, label: ROLE_LABELS[id] })), sessionActive: Boolean(currentUser(req)) });
       if (req.method === 'POST' && url.pathname === '/api/accounts/setup-creator') {
         const b = await bodyJson(req); const setupSecret = process.env.CREATOR_SETUP_SECRET || '';
@@ -179,6 +185,13 @@ const server = http.createServer(async (req, res) => {
         if (!/^.{3,254}@[^\s@]+\.[^\s@]+$/.test(email) || password.length < 12 || password.length > 200 || !/[A-Za-z]/.test(password) || !/[0-9]/.test(password) || !name) return json(res, 400, { error: 'Provide a valid email, name, and password of 12–200 characters containing letters and numbers.' });
         const creds = await passwordHash(password); const user = { id: randomUUID(), email, name, role: 'creator', institutionId: null, active: true, createdAt: new Date().toISOString(), passwordSalt: creds.salt, passwordHash: creds.hash };
         accounts.users.push(user); audit('creator_setup', user.id, user.id); await saveAccounts(); const sid = randomBytes(32).toString('hex'); sessions.set(sid, { userId: user.id, expiresAt: Date.now() + SESSION_TTL_MS }); setSession(res, sid); return json(res, 201, { user: publicUser(user), message: 'Creator account created. Save your credentials securely.' });
+      }
+      if (req.method === 'POST' && url.pathname === '/api/accounts/signup') {
+        const b = await bodyJson(req); const email = cleanText(b.email, 254).toLowerCase(); const name = cleanText(b.name, 100); const password = String(b.password || '');
+        if (!/^.{3,254}@[\s\S]+\.[^\s@]+$/.test(email) || !name || password.length < 12 || password.length > 200 || !/[A-Za-z]/.test(password) || !/[0-9]/.test(password)) return json(res, 400, { error: 'Enter your name, a valid email, and a password of at least 12 characters containing letters and numbers.' });
+        if (accounts.users.some(u => u.email === email)) return json(res, 409, { error: 'An account with this email already exists. Try signing in instead.' });
+        const creds = await passwordHash(password); const user = { id: randomUUID(), email, name, role: 'learner', institutionId: null, active: true, createdAt: new Date().toISOString(), passwordSalt: creds.salt, passwordHash: creds.hash };
+        accounts.users.push(user); audit('learner_signup', user.id, user.id); await saveAccounts(); const sid = randomBytes(32).toString('hex'); sessions.set(sid, { userId: user.id, expiresAt: Date.now() + SESSION_TTL_MS }); setSession(res, sid); return json(res, 201, { user: publicUser(user), message: 'Account created. Email verification is not configured in this deployment.' });
       }
       if (req.method === 'POST' && url.pathname === '/api/accounts/login') {
         const b = await bodyJson(req); const email = cleanText(b.email, 254).toLowerCase(); const user = accounts.users.find(x => x.email === email && x.active);
@@ -219,12 +232,15 @@ const server = http.createServer(async (req, res) => {
         return json(res, 200, { learner: { ...learner, attempts: learner.attempts.slice(-100) } });
       }
       if (req.method === 'POST' && url.pathname === '/api/tutor') {
-        const b = await bodyJson(req); const question = cleanText(b.question, 4000); const subject = cleanText(b.subject, 80) || 'General';
+        const b = await bodyJson(req); const signedIn = currentUser(req); const allowance = signedIn ? null : guestAllowance(req, 'tutor');
+        if (allowance && !allowance.allowed) return json(res, 429, { error: 'You have used your 3 free guest AI tutor questions for today. Sign up for a free account to continue using available learning tools.' , guestLimit: 3, remaining: 0 }); const question = cleanText(b.question, 4000); const subject = cleanText(b.subject, 80) || 'General';
         if (question.length < 3) return json(res, 400, { error: 'Please enter a question of at least 3 characters.' });
-        try { return json(res, 200, await tutorAnswer(question, subject, cleanText(b.level, 80) || 'Secondary', { curriculum: cleanText(b.curriculum, 120), topic: cleanText(b.topic, 160) })); }
+        try { const answer = await tutorAnswer(question, subject, cleanText(b.level, 80) || 'Secondary', { curriculum: cleanText(b.curriculum, 120), topic: cleanText(b.topic, 160) }); return json(res, 200, { ...answer, guestAllowance: allowance ? { limit: allowance.limit, remaining: allowance.remaining } : null }); }
         catch (e) { return json(res, 502, { error: e.message || 'Tutor service unavailable.' }); }
       }
       if (req.method === 'POST' && url.pathname === '/api/attempt') {
+        const signedIn = currentUser(req); const allowance = signedIn ? null : guestAllowance(req, 'practice');
+        if (allowance && !allowance.allowed) return json(res, 429, { error: 'You have used your 5 free guest practice questions for today. Create a free account to continue practising and save progress.', guestLimit: 5, remaining: 0 });
         const b = await bodyJson(req); const learner = getLearner(b.learnerId); const questionId = cleanText(b.questionId, 100); const answer = cleanText(b.answer, 1000);
         const q = sampleQuiz.find(x => x.id === questionId);
         if (!q) return json(res, 404, { error: 'Practice question not found.' });
@@ -233,7 +249,7 @@ const server = http.createServer(async (req, res) => {
         learner.attempts.push(attempt);
         if (!correct && !learner.errorBook.some(x => x.questionId === q.id)) learner.errorBook.push({ questionId: q.id, subject: q.subject, question: q.question, yourAnswer: answer, correctAnswer: q.answer, explanation: q.explanation, createdAt: attempt.createdAt });
         learner.updatedAt = attempt.createdAt; await persist();
-        return json(res, 200, { correct, correctAnswer: q.answer, explanation: q.explanation, attempt });
+        return json(res, 200, { correct, correctAnswer: q.answer, explanation: q.explanation, attempt, guestAllowance: allowance ? { limit: allowance.limit, remaining: allowance.remaining } : null });
       }
       if (req.method === 'POST' && url.pathname === '/api/profile') {
         const b = await bodyJson(req); const learner = getLearner(b.learnerId);

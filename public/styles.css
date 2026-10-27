@@ -55,3 +55,64 @@ body[data-theme="dark"] .answer-code-label{background:#252f4d}body[data-theme="d
 .library-practice p{max-width:720px;margin-top:8px}
 .library-next-steps{text-align:left;line-height:1.8}
 @media(max-width:760px){.library-controls{grid-template-columns:1fr}.library-practice{align-items:flex-start;flex-direction:column}}
+
+
+/* 50 selectable appearance accent presets */
+body[data-appearance="midnight"]{--accent:#6366f1;--primary:#6366f1;--soft:#eef2ff;--accent-soft:#eef2ff;}
+body[data-appearance="ocean"]{--accent:#0284c7;--primary:#0284c7;--soft:#e0f2fe;--accent-soft:#e0f2fe;}
+body[data-appearance="forest"]{--accent:#15803d;--primary:#15803d;--soft:#dcfce7;--accent-soft:#dcfce7;}
+body[data-appearance="sunset"]{--accent:#ea580c;--primary:#ea580c;--soft:#ffedd5;--accent-soft:#ffedd5;}
+body[data-appearance="lavender"]{--accent:#8b5cf6;--primary:#8b5cf6;--soft:#f3e8ff;--accent-soft:#f3e8ff;}
+body[data-appearance="rose"]{--accent:#e11d48;--primary:#e11d48;--soft:#ffe4e6;--accent-soft:#ffe4e6;}
+body[data-appearance="emerald"]{--accent:#059669;--primary:#059669;--soft:#d1fae5;--accent-soft:#d1fae5;}
+body[data-appearance="sapphire"]{--accent:#2563eb;--primary:#2563eb;--soft:#dbeafe;--accent-soft:#dbeafe;}
+body[data-appearance="ruby"]{--accent:#be123c;--primary:#be123c;--soft:#ffe4e6;--accent-soft:#ffe4e6;}
+body[data-appearance="amber"]{--accent:#d97706;--primary:#d97706;--soft:#fef3c7;--accent-soft:#fef3c7;}
+body[data-appearance="teal"]{--accent:#0d9488;--primary:#0d9488;--soft:#ccfbf1;--accent-soft:#ccfbf1;}
+body[data-appearance="indigo"]{--accent:#4f46e5;--primary:#4f46e5;--soft:#e0e7ff;--accent-soft:#e0e7ff;}
+body[data-appearance="coral"]{--accent:#f97316;--primary:#f97316;--soft:#ffedd5;--accent-soft:#ffedd5;}
+body[data-appearance="mint"]{--accent:#10b981;--primary:#10b981;--soft:#d1fae5;--accent-soft:#d1fae5;}
+body[data-appearance="peach"]{--accent:#fb923c;--primary:#fb923c;--soft:#ffedd5;--accent-soft:#ffedd5;}
+body[data-appearance="plum"]{--accent:#9333ea;--primary:#9333ea;--soft:#f3e8ff;--accent-soft:#f3e8ff;}
+body[data-appearance="slate"]{--accent:#475569;--primary:#475569;--soft:#e2e8f0;--accent-soft:#e2e8f0;}
+body[data-appearance="sand"]{--accent:#a16207;--primary:#a16207;--soft:#fef3c7;--accent-soft:#fef3c7;}
+body[data-appearance="ice"]{--accent:#0891b2;--primary:#0891b2;--soft:#cffafe;--accent-soft:#cffafe;}
+body[data-appearance="cobalt"]{--accent:#1d4ed8;--primary:#1d4ed8;--soft:#dbeafe;--accent-soft:#dbeafe;}
+body[data-appearance="aurora"]{--accent:#0f766e;--primary:#0f766e;--soft:#ccfbf1;--accent-soft:#ccfbf1;}
+body[data-appearance="cosmic"]{--accent:#7c3aed;--primary:#7c3aed;--soft:#ede9fe;--accent-soft:#ede9fe;}
+body[data-appearance="graphite"]{--accent:#374151;--primary:#374151;--soft:#e5e7eb;--accent-soft:#e5e7eb;}
+body[data-appearance="cloud"]{--accent:#64748b;--primary:#64748b;--soft:#f1f5f9;--accent-soft:#f1f5f9;}
+body[data-appearance="meadow"]{--accent:#4d7c0f;--primary:#4d7c0f;--soft:#ecfccb;--accent-soft:#ecfccb;}
+body[data-appearance="lagoon"]{--accent:#0f766e;--primary:#0f766e;--soft:#ccfbf1;--accent-soft:#ccfbf1;}
+body[data-appearance="citrus"]{--accent:#65a30d;--primary:#65a30d;--soft:#ecfccb;--accent-soft:#ecfccb;}
+body[data-appearance="berry"]{--accent:#a21caf;--primary:#a21caf;--soft:#fae8ff;--accent-soft:#fae8ff;}
+body[data-appearance="cherry"]{--accent:#e11d48;--primary:#e11d48;--soft:#ffe4e6;--accent-soft:#ffe4e6;}
+body[data-appearance="mocha"]{--accent:#92400e;--primary:#92400e;--soft:#fef3c7;--accent-soft:#fef3c7;}
+body[data-appearance="linen"]{--accent:#78716c;--primary:#78716c;--soft:#f5f5f4;--accent-soft:#f5f5f4;}
+body[data-appearance="arctic"]{--accent:#0369a1;--primary:#0369a1;--soft:#e0f2fe;--accent-soft:#e0f2fe;}
+body[data-appearance="tropical"]{--accent:#0f766e;--primary:#0f766e;--soft:#ccfbf1;--accent-soft:#ccfbf1;}
+body[data-appearance="orchid"]{--accent:#a21caf;--primary:#a21caf;--soft:#fae8ff;--accent-soft:#fae8ff;}
+body[data-appearance="bronze"]{--accent:#a16207;--primary:#a16207;--soft:#fef3c7;--accent-soft:#fef3c7;}
+body[data-appearance="silver"]{--accent:#64748b;--primary:#64748b;--soft:#f1f5f9;--accent-soft:#f1f5f9;}
+body[data-appearance="gold"]{--accent:#ca8a04;--primary:#ca8a04;--soft:#fef9c3;--accent-soft:#fef9c3;}
+body[data-appearance="jade"]{--accent:#047857;--primary:#047857;--soft:#d1fae5;--accent-soft:#d1fae5;}
+body[data-appearance="denim"]{--accent:#1d4ed8;--primary:#1d4ed8;--soft:#dbeafe;--accent-soft:#dbeafe;}
+body[data-appearance="platinum"]{--accent:#64748b;--primary:#64748b;--soft:#f1f5f9;--accent-soft:#f1f5f9;}
+body[data-appearance="dawn"]{--accent:#ea580c;--primary:#ea580c;--soft:#ffedd5;--accent-soft:#ffedd5;}
+body[data-appearance="dusk"]{--accent:#6d28d9;--primary:#6d28d9;--soft:#ede9fe;--accent-soft:#ede9fe;}
+body[data-appearance="rainforest"]{--accent:#166534;--primary:#166534;--soft:#dcfce7;--accent-soft:#dcfce7;}
+body[data-appearance="desert"]{--accent:#b45309;--primary:#b45309;--soft:#fef3c7;--accent-soft:#fef3c7;}
+body[data-appearance="starlight"]{--accent:#334155;--primary:#334155;--soft:#e2e8f0;--accent-soft:#e2e8f0;}
+body[data-appearance="deep-sea"]{--accent:#075985;--primary:#075985;--soft:#e0f2fe;--accent-soft:#e0f2fe;}
+body[data-appearance="spring"]{--accent:#16a34a;--primary:#16a34a;--soft:#dcfce7;--accent-soft:#dcfce7;}
+body[data-appearance="autumn"]{--accent:#c2410c;--primary:#c2410c;--soft:#ffedd5;--accent-soft:#ffedd5;}
+body[data-appearance="winter"]{--accent:#2563eb;--primary:#2563eb;--soft:#dbeafe;--accent-soft:#dbeafe;}
+body[data-appearance="classic"]{--accent:#475569;--primary:#475569;--soft:#f1f5f9;--accent-soft:#f1f5f9;}
+
+/* Three selectable main design themes: Classy, Luxurious, Premium. */
+body[data-design-theme="classy"] .panel,body[data-design-theme="classy"] .stat-card,body[data-design-theme="classy"] .subject-card{border-radius:14px;box-shadow:0 8px 24px rgba(15,23,42,.045)}
+body[data-design-theme="luxurious"]{--shadow:0 18px 48px rgba(55,35,12,.13)}
+body[data-design-theme="luxurious"] .panel,body[data-design-theme="luxurious"] .stat-card,body[data-design-theme="luxurious"] .subject-card{border-radius:22px;box-shadow:var(--shadow);border-color:#b89b5e66}
+body[data-design-theme="luxurious"] .brand-mark,body[data-design-theme="luxurious"] .splash-mark{background:linear-gradient(140deg,#e7c879,#88652b);color:#171717}
+body[data-design-theme="premium"] .panel,body[data-design-theme="premium"] .stat-card,body[data-design-theme="premium"] .subject-card{border-radius:18px;box-shadow:0 12px 34px rgba(15,23,42,.09);border-color:color-mix(in srgb,var(--accent) 24%,var(--line))}
+body[data-design-theme="premium"] .primary{box-shadow:0 6px 18px color-mix(in srgb,var(--primary) 25%,transparent)}

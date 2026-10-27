@@ -1,8 +1,8 @@
 {
   "name": "studywise-ai",
-  "version": "2.1.8",
+  "version": "2.1.11",
   "private": true,
-  "description": "Inclusive StudyWise tutor, expanded starter curriculum catalogue, improved answer formatting, and rights-aware revision resource index",
+  "description": "StudyWise AI: inclusive tutor, guest limits, learner accounts, Explore Subjects, and appearance presets",
   "type": "module",
   "scripts": {
     "start": "node server.js",

@@ -162,3 +162,23 @@ The browser Tutor now formats common Markdown headings, bold/italic text, ordere
 
 ## 2.1.9.1 hotfix — Revision Library navigation
 The Revision library navigation item now loads `/api/resources` before rendering the page. This fixes the issue where tapping the sidebar item did not navigate to the library.
+
+
+## 2.1.10 — Navigation and appearance presets
+This patch uses a document-level capture-phase click handler for `.nav[data-view]`, so the Revision Library navigation is handled even when per-element click registration fails. It also adds 50 named appearance presets (accent palettes) in the learner preferences theme selector where that selector exists. Base light/dark mode remains separate; the 50 presets change accent colors, not 50 entirely different layouts.
+
+## StudyWise AI 2.1.11 update notes
+
+- Added a learner self-sign-up endpoint and a learner sign-up screen in the account centre.
+- Added a Continue as Guest route and server-side short guest allowances: 3 AI tutor requests and 5 answered practice questions per IP per calendar day.
+- Added an Explore Subjects screen for education level, curriculum, subject, and a free-text topic.
+- Preserved the 50 appearance presets and added three main visual style choices: Classy, Luxurious, and Premium.
+- Updated health endpoint and package version to 2.1.11.
+
+### Important deployment limitations
+
+- Guest counters currently use in-memory IP-based counters. They reset on server restart/deploy, and shared networks may share an allowance. For production, move quotas to persistent storage and use privacy-preserving guest session tokens.
+- Email verification and password reset are not enabled because no email delivery provider is configured. The account UI explains this instead of pretending recovery works.
+- The current account foundation stores users and progress in JSON files and has in-memory sessions; it is not production-grade persistent multi-user storage. Before real public launch, use a persistent database and enforce per-user access on every learning-data endpoint.
+- The revision resource index remains empty by default. Automatic internet discovery, safe downloading, and an authorized content review/approval workflow are not implemented by this ZIP; only rights-cleared metadata already added to the index is shown.
+- The 50 appearance presets are accent-color presets; the three main design choices adjust layout styling, not three entirely separate application builds.

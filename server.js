@@ -175,7 +175,7 @@ const server = http.createServer(async (req, res) => {
     if (origin && req.headers.origin && !origin.split(',').map(x => x.trim()).includes(req.headers.origin)) return json(res, 403, { error: 'Origin not allowed' });
     if (req.method === 'OPTIONS') { res.writeHead(204, { 'access-control-allow-methods':'GET,POST,PUT,DELETE,OPTIONS', 'access-control-allow-headers':'content-type' }); return res.end(); }
     if (url.pathname.startsWith('/api/')) {
-      if (req.method === 'GET' && url.pathname === '/api/health') return json(res, 200, { ok: true, app: 'StudyWise AI', version: '2.1.14', aiConfigured: configuredProviders().length > 0, providers: configuredProviders().map(p => p.id), time: new Date().toISOString() });
+      if (req.method === 'GET' && url.pathname === '/api/health') return json(res, 200, { ok: true, app: 'StudyWise AI', version: '2.1.11', aiConfigured: configuredProviders().length > 0, providers: configuredProviders().map(p => p.id), time: new Date().toISOString() });
       if (req.method === 'GET' && url.pathname === '/api/accounts/status') return json(res, 200, { setupRequired: accounts.users.length === 0, roles: ROLES.filter(r => r !== 'creator').map(id => ({ id, label: ROLE_LABELS[id] })), sessionActive: Boolean(currentUser(req)) });
       if (req.method === 'POST' && url.pathname === '/api/accounts/setup-creator') {
         const b = await bodyJson(req); const setupSecret = process.env.CREATOR_SETUP_SECRET || '';

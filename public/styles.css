@@ -138,3 +138,30 @@ body[data-appearance="deep-space"]{--accent:#4C4EAA;--primary:#4C4EAA;--soft:#E6
 body[data-appearance="plasma"]{--accent:#6941FF;--primary:#6941FF;--soft:#EAE4FF;--accent-soft:#EAE4FF}
 body[data-appearance="quantum"]{--accent:#2878B5;--primary:#2878B5;--soft:#DDF2FF;--accent-soft:#DDF2FF}
 body[data-appearance="chrome"]{--accent:#718096;--primary:#718096;--soft:#E8EDF3;--accent-soft:#E8EDF3}
+
+
+/* StudyWise 2.1.16: appearance presets must drive every legacy and modern UI token. */
+body[data-appearance] {
+  --blue: var(--primary, var(--accent, #4263eb));
+  --blue2: var(--soft, var(--accent-soft, #e8edff));
+  --accent: var(--accent, var(--primary, #4263eb));
+}
+body[data-appearance] .primary,
+body[data-appearance] button.primary,
+body[data-appearance] .nav-item.active,
+body[data-appearance] .tab.active,
+body[data-appearance] .progress-fill,
+body[data-appearance] .brand-mark,
+body[data-appearance] .splash-mark {
+  transition: background-color .18s ease, color .18s ease, border-color .18s ease, box-shadow .18s ease;
+}
+body[data-appearance] .primary,
+body[data-appearance] button.primary {
+  background: var(--primary, var(--accent, #4263eb));
+  border-color: var(--primary, var(--accent, #4263eb));
+}
+body[data-appearance] .nav-item.active,
+body[data-appearance] .tab.active {
+  color: var(--primary, var(--accent, #4263eb));
+  background: var(--soft, var(--accent-soft, #e8edff));
+}

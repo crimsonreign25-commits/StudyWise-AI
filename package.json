@@ -1,6 +1,6 @@
 {
   "name": "studywise-ai",
-  "version": "2.1.14",
+  "version": "2.1.16",
   "private": true,
   "description": "StudyWise AI: inclusive tutor, guest limits, learner accounts, Explore Subjects, and appearance presets",
   "type": "module",

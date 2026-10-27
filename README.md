@@ -184,17 +184,16 @@ This patch uses a document-level capture-phase click handler for `.nav[data-view
 - The 50 appearance presets are accent-color presets; the three main design choices adjust layout styling, not three entirely separate application builds.
 
 
-## Version 2.1.14 voice-readability fix
+## Version 2.1.16 appearance fix
+- Preserves all five main design themes: Classy, Luxurious, Premium, Modern, Futuristic.
+- Connects the 50 appearance presets to both modern and legacy UI colour variables so buttons, active navigation, tabs, and progress indicators visibly update.
+- Appearance/theme selections continue to save in localStorage and restore at startup.
 
-- Read-aloud now removes common Markdown heading, list, emphasis, code, table, HTML, and LaTeX formatting markers before speech synthesis.
-- Mathematical operators are spoken as words where practical (for example, plus, times, and divided by).
-- This improves speech text cleanup; actual device voices and speech-recognition support still depend on the browser and Android device.
 
-
-## 2.1.14 full cleanup pass
-- Improved speech playback checks and error feedback; read-aloud respects the voice setting.
-- Selects a matching installed browser voice when available and uses a slightly slower default rate.
-- Speech cleanup suppresses raw URLs and common Markdown/LaTeX formatting noise.
-- Main design theme selector now contains exactly Classy, Luxurious, and Premium.
-- Service-worker cache version bumped so deployed clients can refresh the application shell.
-- Source-checked and automated-tested; real Android microphone/playback and live Render behavior still require deployment testing.
+## Account access and guest mode (2.1.17)
+- Learners can use `/accounts.html` to create a free learner account or sign in.
+- Anyone can select **Continue as Guest** to use the learning app without registering; current server limits are 3 AI tutor requests and 5 practice submissions per IP/day.
+- Institution Administrators, Teachers, Parents/Guardians, Support Staff and Learners sign in through the same account centre. Institution Admins and staff accounts are created by an authorised Creator or Institution Administrator; public self-registration is learner-only.
+- Creator/Super Admin setup is private and requires the site owner's `CREATOR_SETUP_SECRET` in Render. There is no public Creator registration.
+- Five design themes and appearance presets are saved in browser local storage. Preferences do not automatically sync across devices.
+- This remains a development-stage account system using JSON-file account storage and in-memory sessions; do not treat it as production-ready for real institutional/student records. Password-reset email is not enabled until an email delivery service is configured.

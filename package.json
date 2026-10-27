@@ -1,8 +1,8 @@
 {
   "name": "studywise-ai",
-  "version": "2.1.16",
+  "version": "2.1.18",
   "private": true,
-  "description": "StudyWise AI: inclusive tutor, guest limits, learner accounts, Explore Subjects, and appearance presets",
+  "description": "StudyWise AI with automatic public feature carousel, account access and guest learning",
   "type": "module",
   "scripts": {
     "start": "node server.js",

@@ -182,3 +182,19 @@ This patch uses a document-level capture-phase click handler for `.nav[data-view
 - The current account foundation stores users and progress in JSON files and has in-memory sessions; it is not production-grade persistent multi-user storage. Before real public launch, use a persistent database and enforce per-user access on every learning-data endpoint.
 - The revision resource index remains empty by default. Automatic internet discovery, safe downloading, and an authorized content review/approval workflow are not implemented by this ZIP; only rights-cleared metadata already added to the index is shown.
 - The 50 appearance presets are accent-color presets; the three main design choices adjust layout styling, not three entirely separate application builds.
+
+
+## Version 2.1.14 voice-readability fix
+
+- Read-aloud now removes common Markdown heading, list, emphasis, code, table, HTML, and LaTeX formatting markers before speech synthesis.
+- Mathematical operators are spoken as words where practical (for example, plus, times, and divided by).
+- This improves speech text cleanup; actual device voices and speech-recognition support still depend on the browser and Android device.
+
+
+## 2.1.14 full cleanup pass
+- Improved speech playback checks and error feedback; read-aloud respects the voice setting.
+- Selects a matching installed browser voice when available and uses a slightly slower default rate.
+- Speech cleanup suppresses raw URLs and common Markdown/LaTeX formatting noise.
+- Main design theme selector now contains exactly Classy, Luxurious, and Premium.
+- Service-worker cache version bumped so deployed clients can refresh the application shell.
+- Source-checked and automated-tested; real Android microphone/playback and live Render behavior still require deployment testing.

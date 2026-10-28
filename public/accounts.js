@@ -15,3 +15,35 @@ $('#create-form').addEventListener('submit',async e=>{e.preventDefault();try{con
 $('#refresh-users').addEventListener('click',loadUsers);$('#logout').addEventListener('click',async()=>{try{await api('/api/accounts/logout',{method:'POST',body:'{}'});notice('Signed out.');show('#login')}catch(e){notice(e.message)}});
 $('#audit').addEventListener('click',async()=>{try{const d=await api('/api/accounts/audit');$('#audit-list').innerHTML=d.events.map(x=>`<div class="account-user"><span><b>${esc(x.action)}</b><br>Actor: ${esc(x.actor)} · Target: ${esc(x.target||'—')}</span><small>${esc(x.at)}</small></div>`).join('')}catch(e){notice(e.message)}});
 status();
+
+
+// Accessible show/hide controls for every password field on the account page.
+(function addPasswordVisibilityControls(){
+  const eye = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg>';
+  const eyeOff = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 3 18 18"/><path d="M10.6 10.6a2 2 0 0 0 2.8 2.8"/><path d="M9.9 5.2A10.8 10.8 0 0 1 12 5c6.4 0 10 7 10 7a16 16 0 0 1-3.1 3.8M6.2 6.2C3.5 8 2 12 2 12s3.6 7 10 7a10.7 10.7 0 0 0 4-.8"/></svg>';
+  document.querySelectorAll('input[type="password"]').forEach((input, index) => {
+    if (input.dataset.visibilityControl === 'true') return;
+    input.dataset.visibilityControl = 'true';
+    const wrapper = document.createElement('span');
+    wrapper.className = 'password-field';
+    input.parentNode.insertBefore(wrapper, input);
+    wrapper.appendChild(input);
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'password-toggle';
+    button.setAttribute('aria-label', 'Show password');
+    button.setAttribute('aria-pressed', 'false');
+    button.setAttribute('title', 'Show password');
+    button.innerHTML = eye;
+    button.addEventListener('click', () => {
+      const show = input.type === 'password';
+      input.type = show ? 'text' : 'password';
+      button.innerHTML = show ? eyeOff : eye;
+      button.setAttribute('aria-label', show ? 'Hide password' : 'Show password');
+      button.setAttribute('title', show ? 'Hide password' : 'Show password');
+      button.setAttribute('aria-pressed', String(show));
+      input.focus({preventScroll:true});
+    });
+    wrapper.appendChild(button);
+  });
+})();

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'studywise-shell-v2-settings';
+const CACHE_NAME = 'studywise-shell-v2-1-20-auth';
 const APP_SHELL = ['/', '/index.html', '/styles.css', '/app.js', '/pwa.js', '/manifest.webmanifest', '/icons/studywise-192.svg', '/icons/studywise-512.svg'];
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(APP_SHELL)).then(() => self.skipWaiting()));

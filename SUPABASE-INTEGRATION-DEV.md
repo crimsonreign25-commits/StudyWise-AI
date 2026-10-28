@@ -32,7 +32,7 @@ This development-stage change connects learner sign-up and sign-in to Supabase A
 ## Verify on the development deployment
 
 1. Wait for Render to deploy the `studywise-ai-2` branch.
-2. Visit `https://studywise-ai-1.onrender.com/api/health`. Confirm `supabaseConfigured: true` and version `2.1.20`.
+2. Visit `https://studywise-ai-1.onrender.com/api/health`. Confirm `supabaseConfigured: true` and version `2.1.21`.
 3. Run the SQL trigger before attempting a new sign-up; otherwise profile lookup may fail after confirmation/sign-in.
 4. Create a test learner account with an email inbox you control. If email confirmation is enabled, confirm the email, then sign in.
 5. Confirm `/api/accounts/me` returns the learner profile after sign-in.

@@ -1,6 +1,6 @@
 {
   "name": "studywise-ai",
-  "version": "2.1.20",
+  "version": "2.1.21",
   "private": true,
   "description": "StudyWise AI with Supabase authentication and learner-data access hardening",
   "type": "module",

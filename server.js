@@ -269,8 +269,23 @@ const server = http.createServer(async (req, res) => {
     if (origin && req.headers.origin && !origin.split(',').map(x => x.trim()).includes(req.headers.origin)) return json(res, 403, { error: 'Origin not allowed' });
     if (req.method === 'OPTIONS') { res.writeHead(204, { 'access-control-allow-methods':'GET,POST,PUT,DELETE,OPTIONS', 'access-control-allow-headers':'content-type' }); return res.end(); }
     if (url.pathname.startsWith('/api/')) {
-      if (req.method === 'GET' && url.pathname === '/api/health') return json(res, 200, { ok: true, app: 'StudyWise AI', version: '2.1.20', supabaseConfigured: Boolean(supabaseConfig()), aiConfigured: configuredProviders().length > 0, providers: configuredProviders().map(p => p.id), time: new Date().toISOString() });
-      if (req.method === 'GET' && url.pathname === '/api/accounts/status') return json(res, 200, { setupRequired: supabaseConfig() ? !supabaseAdminConfig() : accounts.users.length === 0, authProvider: supabaseConfig() ? 'supabase' : 'legacy', supabaseConfigured: Boolean(supabaseConfig()), accountAdministrationConfigured: Boolean(supabaseAdminConfig()), roles: ROLES.map(id => ({ id, label: ROLE_LABELS[id] })), sessionActive: Boolean(currentUser(req)) });
+      if (req.method === 'GET' && url.pathname === '/api/health') return json(res, 200, { ok: true, app: 'StudyWise AI', version: '2.1.21', supabaseConfigured: Boolean(supabaseConfig()), aiConfigured: configuredProviders().length > 0, providers: configuredProviders().map(p => p.id), time: new Date().toISOString() });
+      if (req.method === 'GET' && url.pathname === '/api/accounts/status') {
+        let setupRequired;
+        if (supabaseConfig()) {
+          if (!supabaseAdminConfig()) setupRequired = true;
+          else {
+            // Do not infer that Creator setup is complete merely because the admin key exists.
+            // Check the protected profiles table so a fresh Supabase project can show setup,
+            // while an already-initialized project keeps one-time Creator registration closed.
+            const creators = await supabaseAdminProfiles('&role=eq.creator&limit=1');
+            setupRequired = !(Array.isArray(creators) && creators.length > 0);
+          }
+        } else {
+          setupRequired = !accounts.users.some(u => u.role === 'creator');
+        }
+        return json(res, 200, { setupRequired, authProvider: supabaseConfig() ? 'supabase' : 'legacy', supabaseConfigured: Boolean(supabaseConfig()), accountAdministrationConfigured: Boolean(supabaseAdminConfig()), roles: ROLES.map(id => ({ id, label: ROLE_LABELS[id] })), sessionActive: Boolean(currentUser(req)) });
+      }
       if (req.method === 'POST' && url.pathname === '/api/accounts/setup-creator') {
         const b = await bodyJson(req); const setupSecret = process.env.CREATOR_SETUP_SECRET || '';
         if (!setupSecret || Buffer.byteLength(String(b.setupSecret || '')) !== Buffer.byteLength(setupSecret) || !timingSafeEqual(Buffer.from(String(b.setupSecret || '')), Buffer.from(setupSecret))) return json(res, 403, { error: 'Creator setup secret is missing or incorrect. Configure CREATOR_SETUP_SECRET in the server environment.' });

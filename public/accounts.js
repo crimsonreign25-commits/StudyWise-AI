@@ -3,6 +3,21 @@ function show(which){boxes.forEach(x=>$(x).hidden=x!==which)}
 function notice(text){$('#notice').textContent=text;$('#notice').hidden=!text}
 async function api(path,opts={}){const res=await fetch(path,{...opts,credentials:'same-origin',headers:{'content-type':'application/json',...(opts.headers||{})}});const data=await res.json();if(!res.ok)throw Error(data.error||`Request failed (${res.status})`);return data}
 function payload(form){return Object.fromEntries(new FormData(form).entries())}
+// Accessible show/hide controls for every password field, including dynamically reused forms.
+document.querySelectorAll('input[type="password"]').forEach(input=>{
+  const toggle=input.parentElement?.querySelector('[data-password-toggle]');
+  if(!toggle)return;
+  toggle.setAttribute('aria-label','Show password');
+  toggle.setAttribute('aria-pressed','false');
+  toggle.addEventListener('click',()=>{
+    const reveal=input.type==='password';
+    input.type=reveal?'text':'password';
+    toggle.textContent=reveal?'Hide':'Show';
+    toggle.setAttribute('aria-label',reveal?'Hide password':'Show password');
+    toggle.setAttribute('aria-pressed',String(reveal));
+    input.focus();
+  });
+});
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 async function status(){try{const s=await api('/api/accounts/status');if(s.setupRequired){show('#setup');return}try{const m=await api('/api/accounts/me');signedIn(m.user)}catch{show('#login')}}catch(e){notice(e.message)}}
 $('#show-signup')?.addEventListener('click',()=>{show('#signup');notice('')});$('#setup-signup')?.addEventListener('click',()=>{show('#signup');notice('')});$('#show-login')?.addEventListener('click',()=>{show('#login');notice('')});$('#forgot-password')?.addEventListener('click',()=>notice('Password recovery is not connected to the app yet. Please contact the site administrator for account recovery; never share your password.'));

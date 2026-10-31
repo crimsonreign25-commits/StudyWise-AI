@@ -1,8 +1,8 @@
 {
   "name": "studywise-ai",
-  "version": "2.1.21",
+  "version": "2.1.22",
   "private": true,
-  "description": "StudyWise AI with Supabase authentication and learner-data access hardening",
+  "description": "StudyWise AI with unified account access and Creator learning workspace",
   "type": "module",
   "scripts": {
     "start": "node server.js",

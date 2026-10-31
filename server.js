@@ -141,11 +141,17 @@ function getLearner(id) {
 function learnerForRequest(req, res, requestedId) {
   const session = currentUser(req);
   if (session) {
-    if (session.user.role !== 'learner') {
-      json(res, 403, { error: 'This learning area is available to learner accounts only.' });
+    // Learners use their own account-bound progress. The Creator may also enter
+    // the learning experience using a separate account-bound sandbox profile.
+    // Other staff/guardian roles remain outside learner-private endpoints until
+    // their dedicated role workspaces are implemented.
+    if (!['learner', 'creator'].includes(session.user.role)) {
+      json(res, 403, { error: 'Your account is signed in, but this learning workspace is currently for learners and the Creator. Use Account Centre for your role-specific tools.' });
       return null;
     }
-    return getLearner(session.user.id);
+    const learner = getLearner(session.user.id);
+    if (session.user.name && (!learner.name || learner.name === 'Learner')) learner.name = session.user.name;
+    return learner;
   }
   return getLearner(requestedId);
 }
